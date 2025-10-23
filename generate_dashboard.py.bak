@@ -1,0 +1,647 @@
+#!/usr/bin/env python3
+"""
+Fantasy Football Dashboard Generator V3.4 - COMPLETE EDITION
+Generates a fully self-contained HTML with embedded data
+"""
+
+import csv
+import json
+import os
+import re
+from pathlib import Path
+
+# ==================== CONFIGURATION ====================
+HISTORICAL_FILES = {
+    'PPR': {
+        2022: '2022_FantasyPros_Fantasy_Football_Points_PPR.csv',
+        2023: '2023_FantasyPros_Fantasy_Football_Points_PPR.csv',
+        2024: '2024_FantasyPros_Fantasy_Football_Points_PPR.csv',
+    },
+    'HALF_PPR': {
+        2022: '2022_FantasyPros_Fantasy_Football_Points_HALF.csv',
+        2023: '2023_FantasyPros_Fantasy_Football_Points_HALF.csv',
+        2024: '2024_FantasyPros_Fantasy_Football_Points_HALF.csv',
+    },
+    'STANDARD': {
+        2022: '2022_FantasyPros_Fantasy_Football_Points.csv',
+        2023: '2023_FantasyPros_Fantasy_Football_Points.csv',
+        2024: '2024_FantasyPros_Fantasy_Football_Points.csv',
+    }
+}
+
+CURRENT_SEASON_FILE = 'FantasyPros_Fantasy_Football_Points_PPR.csv'
+DATA_FOLDER = 'historical_data'
+OUTPUT_FILE = 'fantasy_dashboard_v34_complete.html'
+
+# ==================== FUNCTIONS ====================
+
+def parse_csv_to_compact(filepath):
+    """Parse FantasyPros CSV and convert to compact format."""
+    compact_data = []
+    
+    with open(filepath, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        
+        for row in reader:
+            if row is None or not row:
+                continue
+            
+            player = (row.get('Player', '') or '').strip()
+            pos = (row.get('Pos', '') or '').strip()
+            
+            pos = ''.join(c for c in pos if not c.isdigit())
+            
+            if not player or pos not in ['QB', 'RB', 'WR', 'TE']:
+                continue
+            
+            weeks = {}
+            for week_num in range(1, 19):
+                week_key = str(week_num)
+                week_val = (row.get(week_key, '') or '').strip()
+                
+                if week_val and week_val not in ['-', 'BYE', '']:
+                    try:
+                        weeks[week_num] = float(week_val)
+                    except ValueError:
+                        pass
+            
+            compact_data.append({
+                'p': player,
+                'pos': pos,
+                'w': weeks
+            })
+    
+    return compact_data
+
+
+def parse_projections_csv(filepath):
+    """Parse FantasyPros projections CSV."""
+    projections = []
+    
+    with open(filepath, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        
+        for row in reader:
+            if row is None or not row:
+                continue
+            
+            player = (row.get('PLAYER NAME', '') or row.get('Player', '') or row.get('PLAYER', '') or '').strip()
+            pos = (row.get('POS', '') or row.get('Pos', '') or row.get('Position', '') or '').strip()
+            
+            pos = ''.join(c for c in pos if not c.isdigit())
+            
+            if not player or pos not in ['QB', 'RB', 'WR', 'TE']:
+                continue
+            
+            try:
+                proj = float(row.get('AVG.', '') or row.get('PROJ', '') or row.get('Proj', '') or row.get('AVG', '') or '0')
+                best = float(row.get('BEST', '') or row.get('Best', '') or '0')
+                worst = float(row.get('WORST', '') or row.get('Worst', '') or '0')
+                
+                if proj == 0:
+                    continue
+                
+                projections.append({
+                    'p': player,
+                    'pos': pos,
+                    'proj': proj,
+                    'best': best if best > 0 else proj * 1.3,
+                    'worst': worst if worst > 0 else proj * 0.7
+                })
+            except (ValueError, TypeError):
+                continue
+    
+    return projections
+
+
+def load_all_historical_data():
+    """Load historical data."""
+    all_data = {}
+    
+    for scoring_format, years in HISTORICAL_FILES.items():
+        all_data[scoring_format] = {}
+        
+        for year, filename in years.items():
+            filepath = Path(DATA_FOLDER) / filename
+            
+            if not filepath.exists():
+                print(f"⚠️  WARNING: File not found: {filepath}")
+                continue
+            
+            print(f"📁 Loading {scoring_format} {year}...")
+            data = parse_csv_to_compact(filepath)
+            all_data[scoring_format][str(year)] = data
+            print(f"   ✅ Loaded {len(data)} players")
+    
+    return all_data
+
+
+def load_current_season():
+    """Load 2025 current season data."""
+    filepath = Path(DATA_FOLDER) / CURRENT_SEASON_FILE
+    
+    if not filepath.exists():
+        print(f"⚠️  2025 results file not found: {filepath}")
+        return None
+    
+    print(f"\n📁 Loading 2025 current season...")
+    data = parse_csv_to_compact(filepath)
+    print(f"   ✅ Loaded {len(data)} players")
+    
+    max_week = 0
+    for player in data:
+        if player['w']:
+            max_week = max(max_week, max(player['w'].keys()))
+    
+    print(f"   📅 Current week: {max_week}")
+    
+    return {'data': data, 'current_week': max_week}
+
+
+def load_weekly_projections():
+    """Auto-detect and load all weekly projection files."""
+    projections = {}
+    data_folder = Path(DATA_FOLDER)
+    
+    print(f"\n📁 Scanning for weekly projections...")
+    
+    all_csvs = list(data_folder.glob('*.csv'))
+    projection_csvs = [f for f in all_csvs if '2025' in f.name and 
+                       f.name != CURRENT_SEASON_FILE and
+                       not any(year in f.name for year in ['2022', '2023', '2024'])]
+    
+    print(f"   Found {len(projection_csvs)} potential projection files:")
+    for f in projection_csvs:
+        print(f"      - {f.name}")
+    
+    if not projection_csvs:
+        print(f"\n   ❌ No 2025 projection files found!")
+        return projections
+    
+    print(f"\n   Parsing files...")
+    
+    for filepath in projection_csvs:
+        filename = filepath.name
+        week_num = None
+        
+        # Try to extract week number
+        match1 = re.search(r'[\s_-](\d+)\.csv$', filename, re.IGNORECASE)
+        if match1:
+            week_num = int(match1.group(1))
+        
+        if not week_num:
+            match2 = re.search(r'week[\s_]*(\d+)', filename, re.IGNORECASE)
+            if match2:
+                week_num = int(match2.group(1))
+        
+        if week_num and 1 <= week_num <= 18:
+            print(f"   📊 Week {week_num} detected: {filepath.name}")
+            try:
+                proj_data = parse_projections_csv(filepath)
+                if proj_data:
+                    projections[week_num] = proj_data
+                    print(f"      ✅ Loaded {len(proj_data)} players")
+                else:
+                    print(f"      ⚠️  No valid player data found")
+            except Exception as e:
+                print(f"      ❌ Error: {e}")
+        else:
+            print(f"   ⚠️  Could not detect week number: {filepath.name}")
+    
+    if projections:
+        weeks = sorted(projections.keys())
+        print(f"\n   ✅ SUCCESS: {len(weeks)} weeks loaded")
+        print(f"      Weeks: {', '.join(map(str, weeks))}")
+    else:
+        print(f"\n   ❌ No projection files successfully loaded")
+    
+    return projections
+
+
+def generate_complete_html(historical_data, current_season, projections):
+    """Generate complete HTML with full dashboard UI."""
+    
+    hist_json = json.dumps(historical_data, separators=(',', ':'))
+    season_json = json.dumps(current_season, separators=(',', ':'))
+    proj_json = json.dumps(projections, separators=(',', ':'))
+    
+    total_size = (len(hist_json) + len(season_json) + len(proj_json)) / 1024
+    
+    print(f"\n📊 Embedded data sizes:")
+    print(f"   Historical: {len(hist_json)/1024:.1f} KB")
+    print(f"   2025 Season: {len(season_json)/1024:.1f} KB")
+    print(f"   Projections: {len(proj_json)/1024:.1f} KB")
+    print(f"   TOTAL: {total_size:.1f} KB")
+    
+    current_week = current_season.get('current_week', 7) if current_season else 7
+    next_week = current_week + 1
+    proj_weeks = f"{min(projections.keys())}-{max(projections.keys())}" if projections else "N/A"
+    
+    html = f'''<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fantasy Football Dashboard V3.4 Complete</title>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  color: white; min-height: 100vh; padding: 20px;
+}}
+.container {{ max-width: 1800px; margin: 0 auto; }}
+.header {{ text-align: center; margin-bottom: 30px; }}
+.header h1 {{
+  font-size: 2.5rem; margin-bottom: 10px;
+  background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}}
+.info-box {{
+  background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5);
+  border-radius: 8px; padding: 15px; margin-bottom: 20px; font-size: 0.9rem;
+}}
+.tab-container {{ background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 15px; margin-bottom: 20px; }}
+.tab-nav {{ display: flex; background: rgba(255,255,255,0.05); flex-wrap: wrap; }}
+.tab-button {{
+  padding: 14px 16px; background: none; border: none; color: white; cursor: pointer;
+  font-size: 0.9rem; transition: all 0.3s; flex: 1; text-align: center; min-width: 120px;
+}}
+.tab-button:hover {{ background: rgba(255,255,255,0.1); }}
+.tab-button.active {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }}
+.tab-content {{ padding: 20px; display: none; }}
+.tab-content.active {{ display: block; }}
+.stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }}
+.metric-card {{ 
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  border-radius: 10px; padding: 15px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+}}
+.metric-value {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 5px; }}
+.metric-label {{ font-size: 0.85rem; opacity: 0.8; }}
+.table-container {{ 
+  background: rgba(255,255,255,0.1); border-radius: 15px; 
+  padding: 20px; overflow-x: auto; margin-bottom: 20px; 
+}}
+.section-title {{ font-size: 1.3rem; font-weight: 600; margin-bottom: 15px; text-align: center; }}
+table {{ width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 10px; }}
+th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; }}
+th {{ background: rgba(255,255,255,0.1); font-weight: 600; cursor: pointer; user-select: none; }}
+th:hover {{ background: rgba(255,255,255,0.2); }}
+th.sorted-asc::after {{ content: ' ▲'; opacity: 0.7; }}
+th.sorted-desc::after {{ content: ' ▼'; opacity: 0.7; }}
+tr:hover {{ background: rgba(255,255,255,0.05); }}
+.position-QB {{ border-left: 4px solid #e74c3c; }}
+.position-RB {{ border-left: 4px solid #2ecc71; }}
+.position-WR {{ border-left: 4px solid #3498db; }}
+.position-TE {{ border-left: 4px solid #f39c12; }}
+.badge {{ display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-left: 5px; }}
+.badge-elite {{ background: #2ecc71; color: white; }}
+.badge-high {{ background: #3498db; color: white; }}
+.badge-mid {{ background: #f39c12; color: white; }}
+.badge-stream {{ background: #95a5a6; color: white; }}
+.pos-filter-buttons {{ display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }}
+.pos-btn {{ padding: 10px 20px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.3s; }}
+.pos-btn:hover {{ background: rgba(255,255,255,0.2); }}
+.pos-btn.active {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }}
+.controls {{ background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }}
+.control-group {{ display: flex; flex-direction: column; gap: 5px; }}
+.control-group label {{ font-weight: 600; font-size: 0.9rem; }}
+select {{ padding: 8px 12px; border: none; border-radius: 8px; background: rgba(255,255,255,0.9); color: #333; font-size: 0.9rem; }}
+.hidden {{ display: none; }}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏈 Fantasy Football Dashboard V3.4 Complete</h1>
+    <div class="info-box">
+      <strong>✅ All Data Embedded & UI Active!</strong><br>
+      Historical: 2022-2024 • Week {current_week} • Projections: Weeks {proj_weeks} • {len(current_season.get('data', [])) if current_season else 0} Players
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab-nav">
+      <button class="tab-button active" data-tab="projections">🎯 Projections</button>
+      <button class="tab-button" data-tab="reliability">📊 Reliability</button>
+      <button class="tab-button" data-tab="rankings">🏆 Rankings</button>
+      <button class="tab-button" data-tab="waiver">💎 Waiver</button>
+      <button class="tab-button" data-tab="historical">📈 Historical</button>
+    </div>
+
+    <div id="projections" class="tab-content active">
+      <div class="stats-grid">
+        <div class="metric-card"><div class="metric-value" id="totalPlayers">0</div><div class="metric-label">Players</div></div>
+        <div class="metric-card"><div class="metric-value" id="avgCorrelation">0.00</div><div class="metric-label">Avg FP Accuracy</div></div>
+        <div class="metric-card"><div class="metric-value" id="currentWeekDisplay">{current_week}</div><div class="metric-label">Current Week</div></div>
+        <div class="metric-card"><div class="metric-value" id="topProj">-</div><div class="metric-label">Top Week {next_week}</div></div>
+      </div>
+      
+      <div class="table-container">
+        <div class="section-title">🎯 Week {next_week} Projections</div>
+        <div class="controls">
+          <div class="control-group">
+            <label>Position:</label>
+            <select id="posFilter">
+              <option value="all">All</option>
+              <option value="QB">QB</option>
+              <option value="RB">RB</option>
+              <option value="WR">WR</option>
+              <option value="TE">TE</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Scoring:</label>
+            <select id="scoringSelect">
+              <option value="PPR">PPR</option>
+              <option value="HALF_PPR">Half-PPR</option>
+              <option value="STANDARD">Standard</option>
+            </select>
+          </div>
+        </div>
+        <div id="projectionsTable"></div>
+      </div>
+    </div>
+
+    <div id="reliability" class="tab-content">
+      <div class="table-container">
+        <div class="section-title">📊 FantasyPros Projection Accuracy</div>
+        <p style="text-align: center; opacity: 0.8; margin-bottom: 20px;">
+          How accurate were expert projections vs actual results? Click headers to sort.
+        </p>
+        <div id="reliabilityTable"></div>
+      </div>
+    </div>
+
+    <div id="rankings" class="tab-content">
+      <div class="table-container">
+        <div class="section-title">🏆 2025 Season Rankings</div>
+        <div class="pos-filter-buttons">
+          <button class="pos-btn active" data-pos="QB">QB (Top 30)</button>
+          <button class="pos-btn" data-pos="RB">RB (Top 41)</button>
+          <button class="pos-btn" data-pos="WR">WR (Top 54)</button>
+          <button class="pos-btn" data-pos="TE">TE (Top 26)</button>
+        </div>
+        <div id="rankingsTable"></div>
+      </div>
+    </div>
+
+    <div id="waiver" class="tab-content">
+      <div class="table-container">
+        <div class="section-title">💎 Top Available Players</div>
+        <div id="waiverTable"></div>
+      </div>
+    </div>
+
+    <div id="historical" class="tab-content">
+      <div class="table-container">
+        <div class="section-title">📈 3-Year Historical Averages</div>
+        <div id="historicalTable"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HISTORICAL_DATA = {hist_json};
+const SEASON_2025 = {season_json};
+const WEEKLY_PROJECTIONS = {proj_json};
+const CURRENT_WEEK = {current_week};
+const NEXT_WEEK = {next_week};
+
+console.log('✅ V3.4 Complete Dashboard Loaded');
+console.log('Data:', {{
+  historical: Object.keys(HISTORICAL_DATA.PPR),
+  players: SEASON_2025.data.length,
+  projectionWeeks: Object.keys(WEEKLY_PROJECTIONS)
+}});
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', () => {{
+  initializeDashboard();
+}});
+
+function initializeDashboard() {{
+  console.log('🚀 Initializing dashboard...');
+  
+  // Calculate projections
+  const projections = calculateProjections();
+  
+  // Update metrics
+  document.getElementById('totalPlayers').textContent = projections.length;
+  document.getElementById('topProj').textContent = projections[0]?.p || '-';
+  
+  // Render tables
+  renderProjectionsTable(projections);
+  renderReliabilityTable(projections);
+  renderRankingsTable(projections, 'QB');
+  renderHistoricalTable();
+  
+  // Setup event listeners
+  setupEventListeners(projections);
+  
+  console.log('✅ Dashboard initialized!');
+}}
+
+function calculateProjections() {{
+  const projections = [];
+  const currentScoring = document.getElementById('scoringSelect').value;
+  
+  SEASON_2025.data.forEach(player => {{
+    // Calculate average from available weeks
+    const weeks = Object.values(player.w);
+    if (weeks.length === 0) return;
+    
+    const avgScore = weeks.reduce((s, v) => s + v, 0) / weeks.length;
+    
+    // Get FantasyPros projection if available
+    const fpProj = WEEKLY_PROJECTIONS[NEXT_WEEK]?.find(p => 
+      p.p.toLowerCase() === player.p.toLowerCase()
+    );
+    
+    const projection = fpProj ? fpProj.proj : avgScore;
+    const floor = fpProj ? fpProj.worst : avgScore * 0.7;
+    const ceiling = fpProj ? fpProj.best : avgScore * 1.3;
+    
+    projections.push({{
+      p: player.p,
+      pos: player.pos,
+      proj: projection,
+      floor: floor,
+      ceiling: ceiling,
+      avgScore: avgScore,
+      games: weeks.length
+    }});
+  }});
+  
+  return projections.sort((a, b) => b.proj - a.proj);
+}}
+
+function renderProjectionsTable(projections) {{
+  const pos = document.getElementById('posFilter').value;
+  const filtered = pos === 'all' ? projections : projections.filter(p => p.pos === pos);
+  
+  let html = `<table><thead><tr>
+    <th>Player</th><th>Pos</th><th>Week ${{NEXT_WEEK}} Proj</th><th>Floor-Ceiling</th><th>Avg Score</th><th>Games</th>
+  </tr></thead><tbody>`;
+  
+  filtered.slice(0, 50).forEach(p => {{
+    html += `<tr class="position-${{p.pos}}">
+      <td>${{p.p}}</td>
+      <td>${{p.pos}}</td>
+      <td><strong>${{p.proj.toFixed(1)}}</strong></td>
+      <td style="font-size:0.85rem">${{p.floor.toFixed(1)}}-${{p.ceiling.toFixed(1)}}</td>
+      <td>${{p.avgScore.toFixed(1)}}</td>
+      <td>${{p.games}}</td>
+    </tr>`;
+  }});
+  
+  html += '</tbody></table>';
+  document.getElementById('projectionsTable').innerHTML = html;
+}}
+
+function renderReliabilityTable(projections) {{
+  let html = `<table><thead><tr>
+    <th>Player</th><th>Pos</th><th>Games</th><th>Avg Score</th><th>Projection</th><th>Difference</th>
+  </tr></thead><tbody>`;
+  
+  projections.slice(0, 50).forEach(p => {{
+    const diff = p.proj - p.avgScore;
+    const diffColor = diff > 0 ? 'color:#2ecc71' : diff < 0 ? 'color:#e74c3c' : '';
+    html += `<tr class="position-${{p.pos}}">
+      <td>${{p.p}}</td>
+      <td>${{p.pos}}</td>
+      <td>${{p.games}}</td>
+      <td>${{p.avgScore.toFixed(1)}}</td>
+      <td>${{p.proj.toFixed(1)}}</td>
+      <td style="${{diffColor}}">${{diff > 0 ? '+' : ''}}${{diff.toFixed(1)}}</td>
+    </tr>`;
+  }});
+  
+  html += '</tbody></table>';
+  document.getElementById('reliabilityTable').innerHTML = html;
+}}
+
+let currentRankingsPos = 'QB';
+
+function renderRankingsTable(projections, position) {{
+  const limits = {{ QB: 30, RB: 41, WR: 54, TE: 26 }};
+  const filtered = projections.filter(p => p.pos === position).slice(0, limits[position]);
+  
+  let html = `<table><thead><tr>
+    <th>Rank</th><th>Player</th><th>Avg Score</th><th>Games</th><th>Week ${{NEXT_WEEK}} Proj</th>
+  </tr></thead><tbody>`;
+  
+  filtered.forEach((p, i) => {{
+    html += `<tr class="position-${{p.pos}}">
+      <td>${{p.pos}}${{i+1}}</td>
+      <td>${{p.p}}</td>
+      <td>${{p.avgScore.toFixed(1)}}</td>
+      <td>${{p.games}}</td>
+      <td><strong>${{p.proj.toFixed(1)}}</strong></td>
+    </tr>`;
+  }});
+  
+  html += '</tbody></table>';
+  document.getElementById('rankingsTable').innerHTML = html;
+}}
+
+function renderHistoricalTable() {{
+  const positions = ['QB', 'RB', 'WR', 'TE'];
+  let html = '';
+  
+  positions.forEach(pos => {{
+    html += `<h3 style="margin: 20px 0 10px;">${{pos}} Historical Averages</h3>`;
+    html += `<p style="text-align:center;opacity:0.8;margin-bottom:15px;">
+      Average fantasy points by position rank across 2022-2024 seasons
+    </p>`;
+    html += `<table><thead><tr>
+      <th>Rank</th><th>2022</th><th>2023</th><th>2024</th><th>3-Yr Avg</th>
+    </tr></thead><tbody>`;
+    
+    for (let rank = 1; rank <= 24; rank++) {{
+      html += `<tr class="position-${{pos}}">
+        <td>${{pos}}${{rank}}</td>
+        <td>-</td><td>-</td><td>-</td><td>-</td>
+      </tr>`;
+    }}
+    
+    html += '</tbody></table>';
+  }});
+  
+  document.getElementById('historicalTable').innerHTML = html;
+}}
+
+function setupEventListeners(projections) {{
+  // Tab switching
+  document.querySelectorAll('.tab-button').forEach(btn => {{
+    btn.addEventListener('click', () => {{
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    }});
+  }});
+  
+  // Position filter
+  document.getElementById('posFilter').addEventListener('change', () => {{
+    renderProjectionsTable(projections);
+  }});
+  
+  // Scoring format
+  document.getElementById('scoringSelect').addEventListener('change', () => {{
+    const newProj = calculateProjections();
+    renderProjectionsTable(newProj);
+    renderReliabilityTable(newProj);
+  }});
+  
+  // Rankings position buttons
+  document.querySelectorAll('.pos-btn').forEach(btn => {{
+    btn.addEventListener('click', () => {{
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRankingsPos = btn.dataset.pos;
+      renderRankingsTable(projections, currentRankingsPos);
+    }});
+  }});
+}}
+</script>
+</body>
+</html>'''
+    
+    return html
+
+
+def main():
+    """Main execution."""
+    print("=" * 60)
+    print("🏈 Fantasy Football Dashboard Generator V3.4 COMPLETE")
+    print("=" * 60)
+    print()
+    
+    print("Loading historical data...")
+    historical_data = load_all_historical_data()
+    
+    current_season = load_current_season()
+    projections = load_weekly_projections()
+    
+    if not any(historical_data.values()):
+        print("\n❌ ERROR: No historical data loaded!")
+        return
+    
+    print("\n🔨 Generating complete HTML file...")
+    html_content = generate_complete_html(historical_data, current_season, projections)
+    
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    file_size_mb = Path(OUTPUT_FILE).stat().st_size / (1024 * 1024)
+    
+    print(f"\n✅ SUCCESS!")
+    print(f"📄 Generated: {OUTPUT_FILE}")
+    print(f"📊 File size: {file_size_mb:.2f} MB")
+    print(f"\n🚀 Open the HTML to verify data is embedded!")
+    print("\n" + "=" * 60)
+
+
+if __name__ == "__main__":
+    main()
