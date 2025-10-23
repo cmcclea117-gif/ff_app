@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fantasy Football Dashboard Generator V3.4 - COMPLETE EDITION
+Fantasy Truss - COMPLETE EDITION
 Generates a fully self-contained HTML with embedded data and full UI
 """
 
@@ -197,7 +197,7 @@ def generate_complete_html(historical_data, current_season, projections):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fantasy Football Dashboard V3.4</title>
+<title>Fantasy Truss - Week {nw}</title>
 <style>
 * {{
   margin: 0;
@@ -642,35 +642,72 @@ tbody tr:hover {{
 <body>
 
 <div class="container">
-  <h1>🏈 Fantasy Football Dashboard V3.4</h1>
+  <h1>🏈 Fantasy Truss - Week {nw}</h1>
   
-  <!-- Upload Section -->
-  <div class="upload-section">
-    <h2>⚙️ Configuration</h2>
-    <div class="controls">
-      <div class="control-group">
-        <label>Scoring Format:</label>
-        <select id="scoringFormat">
-          <option value="PPR">PPR</option>
-          <option value="HALF_PPR">Half PPR</option>
-          <option value="STANDARD">Standard</option>
-        </select>
+  <!-- ADD THIS SLEEPER CONNECTION WIDGET -->
+    <div id="sleeperConnection" style="max-width: 600px; margin: 30px auto; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+      <div style="background: white; border-radius: 12px; padding: 25px;">
+        <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #333;">
+          🏈 Connect Your Roster
+        </h2>
+        <p style="margin: 0 0 20px 0; color: #777; font-size: 14px;">
+          Enter your Sleeper username to highlight your players
+        </p>
+        
+        <!-- Step 1: Username -->
+        <div id="usernameSection">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px;">
+            Sleeper Username:
+          </label>
+          <div style="display: flex; gap: 10px;">
+            <input 
+              type="text" 
+              id="sleeperUsername" 
+              placeholder="your_username"
+              style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;"
+            >
+            <button 
+              id="loadLeaguesBtn"
+              onclick="loadSleeperLeagues()"
+              style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"
+            >
+              Load Leagues
+            </button>
+          </div>
+          <div id="sleeperStatus" style="margin-top: 10px; font-size: 13px;"></div>
+        </div>
+        
+        <!-- Step 2: League Selector -->
+        <div id="leagueSection" style="display: none; margin-top: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px;">
+            Select Your League:
+          </label>
+          <select 
+            id="leagueDropdown"
+            style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
+          ></select>
+          <button 
+            id="connectLeagueBtn"
+            onclick="connectSleeperLeague()"
+            style="width: 100%; padding: 12px; background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"
+          >
+            📤 Load Roster to Fantasy Truss
+          </button>
+        </div>
+        
+        <!-- Step 3: Connected Status -->
+        <div id="connectedSection" style="display: none; margin-top: 20px;">
+          <div id="rosterInfo" style="background: #d4edda; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-bottom: 10px;"></div>
+          <button 
+            onclick="clearSleeperRoster()"
+            style="width: 100%; padding: 10px; background: white; color: #dc3545; border: 2px solid #dc3545; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;"
+          >
+            Clear Roster
+          </button>
+        </div>
       </div>
-      
-      <div class="control-group">
-        <label>Sleeper Username:</label>
-        <input type="text" id="sleeperUsername" placeholder="username">
-      </div>
-      
-      <div class="control-group">
-        <label>League ID:</label>
-        <input type="text" id="leagueId" placeholder="123456789">
-      </div>
-      
-      <button onclick="connectToSleeper()" style="align-self: flex-end;">Connect to Sleeper</button>
     </div>
-    <div id="statusMessage"></div>
-  </div>
+    <!-- END SLEEPER CONNECTION WIDGET -->
   
   <!-- Tab Container -->
   <div class="tab-container">
@@ -876,10 +913,312 @@ let POSITION_ACCURACY = {{ QB: {{}}, RB: {{}}, WR: {{}}, TE: {{}} }};
 let PROJECTIONS = [];
 let ALL_ROSTERED = new Set();
 let USER_ROSTER = [];
+let ROSTER_SOURCE = 'None';
 let SLEEPER_DATA = null;
+
+// Sleeper-specific variables
+let sleeperUserId = null;
+let sleeperLeagues = null;
+
+// ==================== SLEEPER INTEGRATION ====================
+
+// Load saved roster on page load
+window.addEventListener('DOMContentLoaded', () => {{
+  const savedUsername = localStorage.getItem('sleeper_username');
+  if (savedUsername) {{
+    document.getElementById('sleeperUsername').value = savedUsername;
+  }}
+  loadSavedSleeperRoster();
+}});
+
+async function loadSleeperLeagues() {{
+  const username = document.getElementById('sleeperUsername').value.trim();
+  const button = document.getElementById('loadLeaguesBtn');
+  const statusDiv = document.getElementById('sleeperStatus');
+  
+  if (!username) {{
+    statusDiv.innerHTML = '<span style="color: #dc3545;">❌ Please enter your Sleeper username</span>';
+    return;
+  }}
+  
+  button.disabled = true;
+  button.textContent = '⏳ Loading...';
+  statusDiv.innerHTML = '<span style="color: #0c5460;">Fetching your leagues...</span>';
+  
+  try {{
+    localStorage.setItem('sleeper_username', username);
+    
+    const userResponse = await fetch(`https://api.sleeper.app/v1/user/${{username}}`);
+    if (!userResponse.ok) throw new Error('Username not found!');
+    
+    const user = await userResponse.json();
+    sleeperUserId = user.user_id;
+    console.log('Found user ID:', sleeperUserId);
+    
+    const currentYear = new Date().getFullYear();
+    const leaguesResponse = await fetch(
+      `https://api.sleeper.app/v1/user/${{sleeperUserId}}/leagues/nfl/${{currentYear}}`
+    );
+    
+    if (!leaguesResponse.ok) throw new Error('Could not fetch leagues');
+    
+    sleeperLeagues = await leaguesResponse.json();
+    console.log('Found leagues:', sleeperLeagues.length);
+    
+    if (sleeperLeagues.length === 0) {{
+      throw new Error('No leagues found for this season');
+    }}
+    
+    displaySleeperLeagues(sleeperLeagues);
+    statusDiv.innerHTML = `<span style="color: #28a745;">✅ Found ${{sleeperLeagues.length}} league(s)!</span>`;
+    
+  }} catch (error) {{
+    console.error('Sleeper error:', error);
+    statusDiv.innerHTML = `<span style="color: #dc3545;">❌ ${{error.message}}</span>`;
+  }} finally {{
+    button.disabled = false;
+    button.textContent = 'Load Leagues';
+  }}
+}}
+
+function displaySleeperLeagues(leagues) {{
+  const dropdown = document.getElementById('leagueDropdown');
+  const section = document.getElementById('leagueSection');
+  
+  dropdown.innerHTML = '';
+  leagues.forEach((league, index) => {{
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = `${{league.name}} (${{league.total_rosters}} teams)`;
+    dropdown.appendChild(option);
+  }});
+  
+  section.style.display = 'block';
+  
+  // Auto-connect if only 1 league
+  if (leagues.length === 1) {{
+    setTimeout(() => connectSleeperLeague(), 500);
+  }}
+}}
+
+async function connectSleeperLeague() {{
+  const dropdown = document.getElementById('leagueDropdown');
+  const button = document.getElementById('connectLeagueBtn');
+  const statusDiv = document.getElementById('sleeperStatus');
+  
+  const leagueIndex = parseInt(dropdown.value);
+  const selectedLeague = sleeperLeagues[leagueIndex];
+  
+  button.disabled = true;
+  button.textContent = '⏳ Loading roster...';
+  
+  try {{
+    console.log('Connecting to league:', selectedLeague.name);
+    
+    const rostersResponse = await fetch(
+      `https://api.sleeper.app/v1/league/${{selectedLeague.league_id}}/rosters`
+    );
+    const rosters = await rostersResponse.json();
+
+    // Find user's roster
+    const userRoster = rosters.find(r => r.owner_id === sleeperUserId);
+
+    if (!userRoster || !userRoster.players) {{
+      throw new Error('Could not find your roster');
+    }}
+
+    console.log('Found roster with', userRoster.players.length, 'players');
+    console.log('Total league rosters:', rosters.length);
+
+    // Fetch player data
+    const playersResponse = await fetch('https://api.sleeper.app/v1/players/nfl');
+    const allPlayers = await playersResponse.json();
+
+    // Process USER roster
+    const playerNames = userRoster.players.map(id => {{
+      const player = allPlayers[id];
+      return player ? player.full_name : null;
+    }}).filter(name => name !== null && name !== undefined && name.trim() !== '');
+
+    console.log('User players:', playerNames.length);
+
+    // Process ALL OTHER rosters in league
+    const allRosteredPlayers = new Set();
+    rosters.forEach(roster => {{
+      if (roster.players) {{
+        roster.players.forEach(playerId => {{
+          const player = allPlayers[playerId];
+          if (player && player.full_name) {{
+            allRosteredPlayers.add(player.full_name);
+          }}
+        }});
+      }}
+    }});
+
+    console.log('Total rostered players in league:', allRosteredPlayers.size);
+
+    // Save both
+    const rosterData = {{
+      leagueName: selectedLeague.name,
+      leagueId: selectedLeague.league_id,
+      players: playerNames,
+      allRostered: Array.from(allRosteredPlayers),
+      totalTeams: rosters.length,
+      fetchedAt: new Date().toISOString()
+    }};
+
+    localStorage.setItem('sleeper_roster', JSON.stringify(rosterData));
+    USER_ROSTER = playerNames;
+    ALL_ROSTERED = allRosteredPlayers;  // Set global for availability checks
+    ROSTER_SOURCE = 'Sleeper';
+    
+    console.log('💾 Saved roster data:', {{
+      myTeam: USER_ROSTER.length,
+      allRostered: ALL_ROSTERED.size,
+      teams: rosterData.totalTeams
+    }});
+    
+    // Fetch users for team names
+    const usersResponse = await fetch(`https://api.sleeper.app/v1/league/${{selectedLeague.league_id}}/users`);
+    const users = await usersResponse.json();
+    
+    // Populate SLEEPER_DATA for lineup optimizer
+    SLEEPER_DATA = {{
+      rosters: rosters,
+      players: allPlayers,
+      users: users,
+      myRoster: userRoster,
+      leagueId: selectedLeague.league_id
+    }};
+    
+    console.log('✅ SLEEPER_DATA populated with', rosters.length, 'teams');
+    
+    // Populate team selector dropdown
+    populateTeamSelector(rosters, users);
+    
+    displayConnectedRoster(rosterData);
+    
+    // Refresh tables to highlight players
+    if (typeof renderProjectionsTable === 'function') {{
+      renderProjectionsTable();
+    }}
+    
+    // Update metrics to show roster count
+    if (typeof updateMetrics === 'function') {{
+      updateMetrics();
+    }}
+    
+    statusDiv.innerHTML = '<span style="color: #28a745;">✅ Roster loaded!</span>';
+    
+  }} catch (error) {{
+    console.error('Connect error:', error);
+    statusDiv.innerHTML = `<span style="color: #dc3545;">❌ ${{error.message}}</span>`;
+  }} finally {{
+    button.disabled = false;
+    button.textContent = '📤 Load Roster to Fantasy Truss';
+  }}
+}}
+
+function populateTeamSelector(rosters, users) {{
+  const selector = document.getElementById('teamSelector');
+  if (!selector) {{
+    console.warn('Team selector not found');
+    return;
+  }}
+  
+  selector.innerHTML = '';
+  
+  rosters.forEach((roster, index) => {{
+    const user = users.find(u => u.user_id === roster.owner_id);
+    const teamName = user ? (user.metadata?.team_name || user.display_name || `Team ${{index + 1}}`) : `Team ${{index + 1}}`;
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = `${{teamName}} (${{roster.players?.length || 0}} players)`;
+    selector.appendChild(option);
+  }});
+  
+  console.log('✅ Populated', rosters.length, 'teams in selector');
+}}
+
+function displayConnectedRoster(rosterData) {{
+  document.getElementById('usernameSection').style.display = 'none';
+  document.getElementById('leagueSection').style.display = 'none';
+  document.getElementById('connectedSection').style.display = 'block';
+  
+  const date = new Date(rosterData.fetchedAt).toLocaleString();
+  const totalRostered = rosterData.allRostered ? rosterData.allRostered.length : 0;
+  const teams = rosterData.totalTeams || '?';
+  
+  document.getElementById('rosterInfo').innerHTML = `
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <span style="font-size: 40px;">✅</span>
+      <div>
+        <strong style="display: block; font-size: 16px; color: #155724;">
+          ${{rosterData.leagueName}}
+        </strong>
+        <span style="font-size: 13px; color: #155724;">
+          Your team: ${{rosterData.players.length}} players<br>
+          League: ${{teams}} teams, ${{totalRostered}} rostered players<br>
+          <em style="opacity: 0.8;">${{date}}</em>
+        </span>
+      </div>
+    </div>
+  `;
+  
+  // Update metrics
+  updateMetrics();
+}}
+
+function clearSleeperRoster() {{
+  if (confirm('Clear your connected roster?')) {{
+    localStorage.removeItem('sleeper_roster');
+    USER_ROSTER = [];
+    ROSTER_SOURCE = 'None';
+    document.getElementById('usernameSection').style.display = 'block';
+    document.getElementById('leagueSection').style.display = 'none';
+    document.getElementById('connectedSection').style.display = 'none';
+    document.getElementById('sleeperStatus').innerHTML = '';
+    
+    if (typeof renderProjectionsTable === 'function') {{
+      renderProjectionsTable();
+    }}
+  }}
+}}
+
+function loadSavedSleeperRoster() {{
+  try {{
+    const saved = localStorage.getItem('sleeper_roster');
+    if (saved) {{
+      const rosterData = JSON.parse(saved);
+      USER_ROSTER = rosterData.players;
+      
+      // Load all rostered players too
+      if (rosterData.allRostered) {{
+        ALL_ROSTERED = new Set(rosterData.allRostered);
+        console.log('Loaded', ALL_ROSTERED.size, 'rostered players from league');
+      }}
+      
+      ROSTER_SOURCE = 'Sleeper';
+      console.log('Loaded saved roster:', rosterData.leagueName, USER_ROSTER.length, 'players');
+      displayConnectedRoster(rosterData);
+      
+      // Update metrics after loading
+      if (typeof updateMetrics === 'function') {{
+        updateMetrics();
+      }}
+    }}
+  }} catch (e) {{
+    console.warn('Could not load saved roster:', e);
+  }}
+}}
+
+// ==================== END SLEEPER INTEGRATION ====================
 
 // ==================== UTILITY FUNCTIONS ====================
 function normalizePlayerName(name) {{
+  if (!name) return '';
+  if (typeof name !== 'string') return '';
+  
   return name.toLowerCase()
     .replace(/\s+(jr|sr|ii|iii|iv|v)\.?$/i, '')
     .replace(/[^a-z0-9\s]/g, '')
@@ -1059,13 +1398,20 @@ function calculateProjections() {{
     const normName = normalizePlayerName(name);
     const ecrData = nextWeekECR.find(p => normalizePlayerName(p.p) === normName);
     
+    // ⚠️ SKIP players without Week 8 ECR data (on bye, injured, etc.)
+    if (!ecrData || !ecrData.ecr || ecrData.ecr <= 0) {{
+      return;  // Don't include this player
+    }}
+
+    // Player has ECR - continue with projection
+    let hasECR = true;
+    let positionRank = ecrData.ecr;
+
     let proj = avgScore;
     let floor = avgScore * 0.7;
     let ceiling = avgScore * 1.3;
-    let hasECR = false;
-    let positionRank = 999;
-    
-    if (ecrData && ecrData.ecr > 0) {{
+
+    // Now continue with the ECR conversion code below...
       hasECR = true;
       positionRank = ecrData.ecr;
       
@@ -1133,7 +1479,6 @@ function calculateProjections() {{
         // No player history OR not enough games - use position reliability only
         proj = reliabilityWeight * proj + (1 - reliabilityWeight) * avgScore;
       }}
-    }}
     
     projections.push({{
       p: name,
@@ -1401,246 +1746,31 @@ function renderHistoricalTable() {{
   container.innerHTML = html;
 }}
 
-// ==================== SLEEPER INTEGRATION ====================
-async function connectToSleeper() {{
-  const username = document.getElementById('sleeperUsername').value.trim();
-  const leagueId = document.getElementById('leagueId').value.trim();
-  const statusDiv = document.getElementById('statusMessage');
-  
-  if (!username || !leagueId) {{
-    statusDiv.innerHTML = '<div class="status error">Please enter both username and league ID</div>';
-    return;
-  }}
-  
-  statusDiv.innerHTML = '<div class="status">Connecting to Sleeper...</div>';
-  
-  try {{
-    // Fetch user
-    const userRes = await fetch(`https://api.sleeper.app/v1/user/${{username}}`);
-    if (!userRes.ok) throw new Error('User not found');
-    const userData = await userRes.json();
-    
-    // Fetch rosters
-    const rostersRes = await fetch(`https://api.sleeper.app/v1/league/${{leagueId}}/rosters`);
-    if (!rostersRes.ok) throw new Error('League not found');
-    const rosters = await rostersRes.json();
-    
-    // Fetch users
-    const usersRes = await fetch(`https://api.sleeper.app/v1/league/${{leagueId}}/users`);
-    const users = await usersRes.json();
-    
-    // Fetch NFL players
-    const playersRes = await fetch('https://api.sleeper.app/v1/players/nfl');
-    const allPlayers = await playersRes.json();
-    
-    // Build rostered sets
-    ALL_ROSTERED.clear();
-    rosters.forEach(roster => {{
-      (roster.players || []).forEach(pid => ALL_ROSTERED.add(pid));
-    }});
-    
-    // Find my roster
-    const myRoster = rosters.find(r => r.owner_id === userData.user_id);
-    if (!myRoster) throw new Error('You are not in this league');
-    
-    USER_ROSTER = (myRoster.players || []).map(pid => {{
-      const p = allPlayers[pid];
-      return p ? p.full_name : null;
-    }}).filter(Boolean);
-    
-    // Store data
-    SLEEPER_DATA = {{ rosters, users, players: allPlayers, myRoster }};
-    
-    // Populate team selector
-    populateTeamSelector(rosters, users);
-    
-    statusDiv.innerHTML = `<div class="status success">✅ Connected! Found ${{USER_ROSTER.length}} players on your roster</div>`;
-    
-    // Re-render tables
-    updateMetrics();
-    renderProjectionsTable();
-    renderWaiverTable();
-    
-  }} catch (error) {{
-    statusDiv.innerHTML = `<div class="status error">❌ Error: ${{error.message}}</div>`;
-  }}
-}}
-
-// ==================== ESPN EXTENSION SUPPORT ====================
-
-// Listen for ESPN roster from browser extension
-window.addEventListener('espnRosterLoaded', (event) => {{
-  const rosterData = event.detail;
-  console.log('🏈 ESPN roster received from extension:', rosterData);
-  
-  try {{
-    // Extract player names for roster checking
-    USER_ROSTER = rosterData.roster.map(p => p.name);
-    ROSTER_SOURCE = 'ESPN Extension';
-    window.ESPN_ROSTER_DATA = rosterData;
-    
-    console.log(`✅ Loaded ${{USER_ROSTER.length}} players from ${{rosterData.teamName}}`);
-    
-    // Save to localStorage for next visit
-    try {{
-      localStorage.setItem('espn_roster', JSON.stringify(rosterData));
-      localStorage.setItem('roster_source', 'ESPN');
-    }} catch (e) {{
-      console.warn('Could not save to localStorage:', e);
-    }}
-    
-    // Update connection status UI
-    updateConnectionStatus(rosterData);
-    
-    // Refresh tables to highlight rostered players
-    if (typeof renderProjectionsTable === 'function') {{
-      renderProjectionsTable();
-    }}
-    
-    // Show success notification
-    showRosterNotification(rosterData);
-    
-  }} catch (error) {{
-    console.error('Failed to process ESPN roster:', error);
-    alert('Failed to load ESPN roster: ' + error.message);
-  }}
-}});
-
-function updateConnectionStatus(rosterData) {{
-  // Update any connection status UI elements
-  const statusEl = document.getElementById('connectionStatus');
-  if (statusEl) {{
-    statusEl.innerHTML = `
-      <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 15px 0;">
-        <strong style="color: #155724;">🏈 ESPN Roster Connected</strong><br>
-        <span style="font-size: 0.9em; color: #155724;">
-          Team: ${{rosterData.teamName}}<br>
-          Players: ${{rosterData.roster.length}}<br>
-          Season: ${{rosterData.season}}<br>
-          <em>Last updated: ${{new Date(rosterData.fetchedAt).toLocaleString()}}</em>
-        </span>
-      </div>
-    `;
-  }}
-}}
-
-function showRosterNotification(rosterData) {{
-  // Create temporary notification
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #28a745;
-    color: white;
-    padding: 20px 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    z-index: 10000;
-    font-size: 15px;
-    max-width: 350px;
-    animation: slideIn 0.3s ease-out;
-  `;
-  
-  notification.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <span style="font-size: 32px;">🏈</span>
-      <div>
-        <strong style="display: block; margin-bottom: 5px;">ESPN Roster Loaded!</strong>
-        <span style="font-size: 13px; opacity: 0.9;">
-          ${{rosterData.teamName}}<br>
-          ${{rosterData.roster.length}} players
-        </span>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Remove after 4 seconds
-  setTimeout(() => {{
-    notification.style.animation = 'slideOut 0.3s ease-in';
-    setTimeout(() => notification.remove(), 300);
-  }}, 4000);
-}}
-
-// Load saved ESPN roster on page load
-function loadSavedESPNRoster() {{
-  try {{
-    const saved = localStorage.getItem('espn_roster');
-    if (saved) {{
-      const rosterData = JSON.parse(saved);
-      USER_ROSTER = rosterData.roster.map(p => p.name);
-      ROSTER_SOURCE = 'ESPN';
-      window.ESPN_ROSTER_DATA = rosterData;
-      
-      console.log(`✅ Loaded saved ESPN roster: ${{rosterData.teamName}} (${{USER_ROSTER.length}} players)`);
-      
-      updateConnectionStatus(rosterData);
-    }}
-  }} catch (e) {{
-    console.warn('Could not load saved ESPN roster:', e);
-  }}
-}}
-
-// Call on page load
-if (document.readyState === 'loading') {{
-  document.addEventListener('DOMContentLoaded', loadSavedESPNRoster);
-}} else {{
-  loadSavedESPNRoster();
-}}
-
-// Add slide animation styles
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {{
-    from {{
-      transform: translateX(400px);
-      opacity: 0;
-    }}
-    to {{
-      transform: translateX(0);
-      opacity: 1;
-    }}
-  }}
-  @keyframes slideOut {{
-    from {{
-      transform: translateX(0);
-      opacity: 1;
-    }}
-    to {{
-      transform: translateX(400px);
-      opacity: 0;
-    }}
-  }}
-`;
-document.head.appendChild(style);
-
-// ==================== END ESPN EXTENSION SUPPORT ====================
-
-function populateTeamSelector(rosters, users) {{
-  const selector = document.getElementById('teamSelector');
-  selector.innerHTML = rosters.map((roster, idx) => {{
-    const user = users.find(u => u.user_id === roster.owner_id);
-    const name = user ? user.display_name : `Team ${{idx + 1}}`;
-    return `<option value="${{idx}}">${{name}}</option>`;
-  }}).join('');
-}}
-
 function isOnRoster(playerName) {{
-  const norm = normalizePlayerName(playerName);
-  return USER_ROSTER.some(rp => normalizePlayerName(rp) === norm);
+  if (!playerName) return false;
+  if (!USER_ROSTER || USER_ROSTER.length === 0) return false;
+  
+  const normalizedPlayer = normalizePlayerName(playerName);
+  if (!normalizedPlayer) return false;
+  
+  return USER_ROSTER.some(rosterName => {{
+    if (!rosterName) return false;
+    const normalizedRoster = normalizePlayerName(rosterName);
+    return normalizedRoster === normalizedPlayer;
+  }});
 }}
 
 function isRostered(playerName) {{
-  if (!SLEEPER_DATA) return false;
+  if (!playerName) return false;
+  if (ALL_ROSTERED.size === 0) return false;
   
-  const norm = normalizePlayerName(playerName);
-  const players = SLEEPER_DATA.players;
+  const normalized = normalizePlayerName(playerName);
+  if (!normalized) return false;
   
-  for (const [pid, player] of Object.entries(players)) {{
-    if (player.full_name && normalizePlayerName(player.full_name) === norm) {{
-      return ALL_ROSTERED.has(pid);
+  // Check if player is on ANY roster in the league
+  for (const rosteredPlayer of ALL_ROSTERED) {{
+    if (normalizePlayerName(rosteredPlayer) === normalized) {{
+      return true;
     }}
   }}
   
@@ -1790,7 +1920,7 @@ function sortReliability(column) {{
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {{
-  console.log('🏈 Fantasy Dashboard V3.4 Loaded');
+  console.log('🏈 Fantasy Truss Loaded');
   console.log('Data:', {{
     historical: Object.keys(HISTORICAL_DATA.PPR).length,
     season: SEASON_2025.data.length,
@@ -1829,22 +1959,25 @@ document.addEventListener('DOMContentLoaded', () => {{
 }});
 
 // Scoring format change handler
-document.getElementById('scoringFormat').addEventListener('change', (e) => {{
-  CURRENT_SCORING = e.target.value;
-  console.log('Switched to', CURRENT_SCORING);
-  
-  // Recalculate with new scoring
-  calculateFPAccuracy();
-  PROJECTIONS = calculateProjections();
-  
-  // Re-render everything
-  updateMetrics();
-  renderProjectionsTable();
-  renderReliabilityTable();
-  renderRankingsTable('QB');
-  renderWaiverTable();
-  renderHistoricalTable();
-}});
+const scoringFormatEl = document.getElementById('scoringFormat');
+if (scoringFormatEl) {{
+  scoringFormatEl.addEventListener('change', (e) => {{
+    CURRENT_SCORING = e.target.value;
+    console.log('Switched to', CURRENT_SCORING);
+    
+    // Recalculate with new scoring
+    calculateFPAccuracy();
+    PROJECTIONS = calculateProjections();
+    
+    // Re-render everything
+    updateMetrics();
+    renderProjectionsTable();
+    renderReliabilityTable();
+    renderRankingsTable('QB');
+    renderWaiverTable();
+    renderHistoricalTable();
+  }});
+}}
 </script>
 
 </body>
@@ -1855,7 +1988,7 @@ document.getElementById('scoringFormat').addEventListener('change', (e) => {{
 
 def main():
     print("=" * 60)
-    print("🏈 FF Dashboard Generator V3.4 - COMPLETE EDITION")
+    print("🏈 Fantasy Truss - COMPLETE EDITION")
     print("=" * 60)
     
     historical = load_all_historical_data()

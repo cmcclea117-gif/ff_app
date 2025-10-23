@@ -1,15 +1,17 @@
 {
   "manifest_version": 3,
   "name": "ESPN Fantasy Roster Connector",
-  "version": "1.0.0",
-  "description": "Connect your ESPN Fantasy Football roster to fantasy dashboard apps",
+  "version": "2.0.0",
+  "description": "Automatically connect your ESPN Fantasy Football roster to fantasy dashboards",
   "permissions": [
     "storage",
     "activeTab",
-    "cookies"
+    "cookies",
+    "tabs"
   ],
   "host_permissions": [
     "https://fantasy.espn.com/*",
+    "https://*.espn.com/*",
     "https://*.github.io/*"
   ],
   "action": {
@@ -30,6 +32,13 @@
         "http://localhost:*/*"
       ],
       "js": ["content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://fantasy.espn.com/*"
+      ],
+      "js": ["espn-page-helper.js"],
       "run_at": "document_end"
     }
   ],

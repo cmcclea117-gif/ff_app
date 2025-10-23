@@ -24,6 +24,49 @@ async function fetchESPNRoster(config) {
   
   console.log('Background: Fetching ESPN roster for league', leagueId);
   
+  // New approach: Use the content script running ON the ESPN page
+  // This way it has access to the actual ESPN session!
+  
+  try {
+    // First, find an ESPN tab
+    console.log('Background: Looking for ESPN Fantasy tab...');
+    const espnTabs = await chrome.tabs.query({ url: 'https://fantasy.espn.com/*' });
+    
+    if (espnTabs.length === 0) {
+      // No ESPN tab open - try to open one and instruct user
+      throw new Error('Please open ESPN Fantasy Football in another tab first, then try again.');
+    }
+    
+    console.log('Background: Found ESPN tab, sending fetch request to page context...');
+    
+    // Send message to content script running on ESPN page
+    const response = await chrome.tabs.sendMessage(espnTabs[0].id, {
+      type: 'FETCH_FROM_ESPN_PAGE',
+      config: { leagueId, seasonYear }
+    });
+    
+    if (!response.success) {
+      throw new Error(response.error);
+    }
+    
+    console.log('Background: Successfully fetched roster from ESPN page!');
+    return response.data;
+    
+  } catch (error) {
+    console.error('Background: ESPN page fetch failed:', error);
+    
+    // Fallback: Try the old cookie method if page method fails
+    console.log('Background: Trying fallback cookie method...');
+    return await fetchViaBackgroundCookies(config);
+  }
+}
+
+// Fallback method using background script cookies (old way)
+async function fetchViaBackgroundCookies(config) {
+  const { leagueId, seasonYear, swid, espnS2 } = config;
+  
+  console.log('Background: Fetching ESPN roster for league', leagueId);
+  
   const url = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${seasonYear}/segments/0/leagues/${leagueId}?view=mRoster&view=mTeam`;
   
   // Set cookies if provided
@@ -71,15 +114,37 @@ async function fetchESPNRoster(config) {
   
   console.log('Background: Fetching from URL...');
   
-  const response = await fetch(url, {
+  // Try WITHOUT credentials first (for public leagues)
+  let response = await fetch(url, {
     method: 'GET',
-    credentials: 'include', // Include cookies
+    credentials: 'omit', // Don't send cookies first
     headers: {
       'Accept': 'application/json'
     }
   });
   
-  console.log('Background: Response status:', response.status);
+  console.log('Background: Initial response status:', response.status);
+  
+  // If we get 401 and have cookies, try again WITH credentials
+  if (response.status === 401 && swid && espnS2) {
+    console.log('Background: Got 401, retrying with credentials...');
+    
+    response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log('Background: Response with credentials:', response.status);
+  }
+  
+  // Check for redirects (ESPN redirects to login if auth fails)
+  if (response.redirected) {
+    console.error('Background: ESPN redirected to:', response.url);
+    throw new Error('ESPN redirected to login. Possible fixes: 1) Try year 2024, 2) Get fresh cookies, 3) Check league privacy');
+  }
   
   if (!response.ok) {
     if (response.status === 401) {

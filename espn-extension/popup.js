@@ -25,7 +25,110 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('fetchRoster').addEventListener('click', fetchRoster);
   document.getElementById('clearData').addEventListener('click', clearData);
   document.getElementById('injectRoster')?.addEventListener('click', injectRoster);
+  document.getElementById('autoDetectCookies').addEventListener('click', autoDetectCookies);
+  document.getElementById('autoDetectLeagueId').addEventListener('click', autoDetectLeagueId);
 });
+
+async function autoDetectLeagueId() {
+  const button = document.getElementById('autoDetectLeagueId');
+  const leagueIdInput = document.getElementById('leagueId');
+  
+  button.disabled = true;
+  button.textContent = '...';
+  
+  try {
+    // Get current active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab || !tab.url) {
+      throw new Error('No active tab found');
+    }
+    
+    // Check if it's an ESPN Fantasy URL
+    if (!tab.url.includes('fantasy.espn.com')) {
+      throw new Error('Current tab is not ESPN Fantasy. Open your league page first.');
+    }
+    
+    // Extract league ID from URL
+    // URL format: https://fantasy.espn.com/football/league?leagueId=123456
+    const match = tab.url.match(/leagueId=(\d+)/);
+    
+    if (!match) {
+      throw new Error('Could not find League ID in URL. Make sure you\'re on your league page.');
+    }
+    
+    const leagueId = match[1];
+    leagueIdInput.value = leagueId;
+    
+    // Save to storage
+    await chrome.storage.sync.set({ leagueId });
+    
+    showStatus('success', `✅ Found League ID: ${leagueId}`);
+    
+  } catch (error) {
+    console.error('Auto-detect league ID error:', error);
+    showStatus('error', `❌ ${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = '🔍 From Tab';
+  }
+}
+
+async function autoDetectCookies() {
+  const button = document.getElementById('autoDetectCookies');
+  const swidInput = document.getElementById('swid');
+  const espnS2Input = document.getElementById('espnS2');
+  
+  button.disabled = true;
+  button.textContent = '🔍 Detecting...';
+  
+  try {
+    console.log('Auto-detecting ESPN cookies...');
+    
+    // Get all ESPN cookies
+    const cookies = await chrome.cookies.getAll({
+      domain: '.espn.com'
+    });
+    
+    console.log('Found cookies:', cookies.map(c => c.name));
+    
+    // Find SWID and espn_s2
+    const swidCookie = cookies.find(c => c.name === 'swid');
+    const espnS2Cookie = cookies.find(c => c.name === 'espn_s2');
+    
+    if (!swidCookie || !espnS2Cookie) {
+      // Check if user has ESPN open
+      const espnTabs = await chrome.tabs.query({ url: 'https://*.espn.com/*' });
+      
+      if (espnTabs.length === 0) {
+        throw new Error('No ESPN cookies found. Please open ESPN Fantasy in another tab and log in first.');
+      } else {
+        throw new Error('Cookies not found. Make sure you\'re logged into ESPN Fantasy.');
+      }
+    }
+    
+    // Fill in the form
+    swidInput.value = swidCookie.value;
+    espnS2Input.value = espnS2Cookie.value;
+    
+    // Save to storage
+    await chrome.storage.sync.set({
+      swid: swidCookie.value,
+      espnS2: espnS2Cookie.value
+    });
+    
+    showStatus('success', '✅ Cookies auto-detected! You can now fetch your roster.');
+    
+    console.log('Auto-detect successful!');
+    
+  } catch (error) {
+    console.error('Auto-detect error:', error);
+    showStatus('error', `❌ ${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = '🔍 Auto-Detect ESPN Cookies';
+  }
+}
 
 async function fetchRoster() {
   const leagueId = document.getElementById('leagueId').value.trim();
@@ -84,30 +187,6 @@ async function fetchRoster() {
   } catch (error) {
     console.error('Popup: Fetch error:', error);
     showStatus('error', `❌ ${error.message || error}`);
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Fetch My Roster';
-  }
-}
-    
-    // Parse roster
-    const roster = parseRoster(data);
-    
-    if (!roster) {
-      throw new Error('Failed to parse roster data');
-    }
-    
-    // Save to cache
-    currentRoster = roster;
-    await chrome.storage.local.set({ cachedRoster: roster });
-    
-    // Display
-    displayRoster(roster);
-    showStatus('success', `✅ Found ${roster.roster.length} players!`);
-    
-  } catch (error) {
-    console.error('Fetch error:', error);
-    showStatus('error', `❌ ${error.message}`);
   } finally {
     button.disabled = false;
     button.textContent = 'Fetch My Roster';

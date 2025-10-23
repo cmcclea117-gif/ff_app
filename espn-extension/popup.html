@@ -142,29 +142,47 @@
   <h1>🏈 ESPN Roster Connector</h1>
   
   <div class="section">
+    <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+      <strong>💡 Important:</strong> Keep an ESPN Fantasy tab open while using this extension!
+    </div>
+    
     <label>ESPN League ID:</label>
-    <input type="text" id="leagueId" placeholder="e.g., 40251425">
+    <div style="display: flex; gap: 5px;">
+      <input type="text" id="leagueId" placeholder="e.g., 40251425" style="flex: 1;">
+      <button id="autoDetectLeagueId" style="width: auto; padding: 8px 12px; font-size: 12px;">
+        🔍 From Tab
+      </button>
+    </div>
     
     <label>Season Year:</label>
     <select id="seasonYear">
-      <option value="2024">2024</option>
-      <option value="2025" selected>2025</option>
+      <option value="2024" selected>2024</option>
+      <option value="2025">2025</option>
     </select>
     
-    <details>
-      <summary>🔐 Private League? Add Cookies</summary>
+    <details open>
+      <summary>🔐 Authentication (Auto-Detect Available!)</summary>
+      
+      <button id="autoDetectCookies" style="background: #28a745; margin-bottom: 10px;">
+        🔍 Auto-Detect ESPN Cookies
+      </button>
+      
+      <p class="help-text" style="margin: 5px 0;">
+        Click above to automatically grab cookies from your ESPN tab, or enter manually below:
+      </p>
       
       <label>SWID:</label>
-      <input type="text" id="swid" placeholder="{ABC123-...}">
+      <input type="text" id="swid" placeholder="{ABC123-...} or auto-detect">
       
       <label>espn_s2:</label>
-      <input type="password" id="espnS2" placeholder="Long string...">
+      <input type="password" id="espnS2" placeholder="Long string... or auto-detect">
       
       <p class="help-text">
-        <strong>How to get cookies:</strong><br>
-        1. Go to ESPN Fantasy<br>
-        2. Press F12 → Application → Cookies<br>
-        3. Copy <code>swid</code> and <code>espn_s2</code> values
+        <strong>Auto-detect steps:</strong><br>
+        1. Open ESPN Fantasy in another tab<br>
+        2. Make sure you're logged in<br>
+        3. Click "Auto-Detect ESPN Cookies"<br>
+        4. Cookies will fill automatically!
       </p>
     </details>
   </div>
