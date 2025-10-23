@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESPN API Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+    input { width: 100%; padding: 8px; margin: 10px 0; }
+    button { background: #0066cc; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+    button:hover { background: #0052a3; }
+    #output { background: #f5f5f5; padding: 15px; margin-top: 20px; border-radius: 5px; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>🏈 ESPN Fantasy API Tester</h1>
+  
+  <div>
+    <label>Season Year:</label>
+    <select id="seasonYear">
+      <option value="2024">2024</option>
+      <option value="2025" selected>2025</option>
+    </select>
+    
+    <label>ESPN League ID:</label>
+    <input type="text" id="leagueId" placeholder="e.g., 123456789">
+    
+    <label>SWID (optional - for private leagues):</label>
+    <input type="text" id="swid" placeholder="e.g., {ABC123-DEF456-...}">
+    
+    <label>espn_s2 (optional - for private leagues):</label>
+    <input type="text" id="espnS2" placeholder="Long string from cookies">
+    
+    <button onclick="testESPN()">Test Connection</button>
+  </div>
+  
+  <div id="output"></div>
+  
+  <script>
+    // CORS Proxy workaround
+    const USE_PROXY = true; // Set to false if running via http://localhost
+    
+    async function fetchESPN(url, options = {}) {
+      if (USE_PROXY) {
+        // Use CORS proxy for file:// protocol
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const proxiedUrl = proxyUrl + encodeURIComponent(url);
+        console.log('Using proxy:', proxiedUrl);
+        return fetch(proxiedUrl, { ...options, credentials: 'omit' });
+      } else {
+        return fetch(url, options);
+      }
+    }
+    
+    async function testESPN() {
+      const output = document.getElementById('output');
+      const leagueId = document.getElementById('leagueId').value.trim();
+      const swid = document.getElementById('swid').value.trim();
+      const espnS2 = document.getElementById('espnS2').value.trim();
+      
+      if (!leagueId) {
+        output.innerHTML = '<p class="error">❌ Please enter a League ID</p>';
+        return;
+      }
+      
+      output.innerHTML = '<p>⏳ Testing ESPN API...</p>';
+      
+      try {
+        // Build URL
+        const year = document.getElementById('seasonYear').value;
+        const url = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${leagueId}?view=mRoster&view=mTeam`;
+        
+        console.log('Fetching:', url);
+        
+        // Build headers
+        const headers = {};
+        if (swid && espnS2) {
+          headers['Cookie'] = `swid=${swid}; espn_s2=${espnS2}`;
+        }
+        
+        // Fetch
+        const response = await fetchESPN(url, {
+          method: 'GET',
+          headers: headers,
+          credentials: swid ? 'include' : 'omit'
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Get text first to see what we received
+        const text = await response.text();
+        console.log('Response text (first 500 chars):', text.substring(0, 500));
+        
+        // Try to parse as JSON
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error('Failed to parse JSON:', e);
+          console.log('Full response:', text);
+          throw new Error('ESPN returned invalid JSON. Check if league exists for 2025 season.');
+        }
+        
+        console.log('Full response:', data);
+        
+        // Parse results
+        const teams = data.teams || [];
+        const leagueName = data.settings?.name || 'Unknown League';
+        
+        let html = `<p class="success">✅ <strong>Success!</strong> Connected to ESPN league</p>`;
+        html += `<p><strong>League:</strong> ${leagueName}</p>`;
+        html += `<p><strong>Teams found:</strong> ${teams.length}</p>`;
+        
+        // Show first team's roster as example
+        if (teams.length > 0) {
+          const firstTeam = teams[0];
+          const teamName = firstTeam.location + ' ' + firstTeam.nickname;
+          const entries = firstTeam.roster?.entries || [];
+          
+          html += `<h3>Example Team: ${teamName}</h3>`;
+          html += `<p><strong>Roster size:</strong> ${entries.length} players</p>`;
+          
+          if (entries.length > 0) {
+            html += '<h4>Sample Players:</h4><ul>';
+            entries.slice(0, 5).forEach(entry => {
+              const player = entry.playerPoolEntry?.player || {};
+              const name = player.fullName || 'Unknown';
+              const pos = getPosition(player.defaultPositionId);
+              html += `<li>${name} (${pos})</li>`;
+            });
+            html += '</ul>';
+          }
+          
+          html += '<h4>All Teams:</h4><ul>';
+          teams.forEach(team => {
+            const name = team.location + ' ' + team.nickname;
+            const rosterSize = team.roster?.entries?.length || 0;
+            html += `<li>${name} (${rosterSize} players)</li>`;
+          });
+          html += '</ul>';
+        }
+        
+        html += '<p><em>✅ Check browser console (F12) for full response data</em></p>';
+        output.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error:', error);
+        
+        let html = `<p class="error">❌ <strong>Error:</strong> ${error.message}</p>`;
+        
+        if (error.message.includes('401')) {
+          html += `<p>This is a <strong>private league</strong>. You need to provide SWID and espn_s2 cookies.</p>`;
+          html += `<p><strong>How to get cookies:</strong></p>`;
+          html += `<ol>`;
+          html += `<li>Open ESPN Fantasy in your browser</li>`;
+          html += `<li>Press F12 to open Developer Tools</li>`;
+          html += `<li>Go to "Application" tab (Chrome) or "Storage" tab (Firefox)</li>`;
+          html += `<li>Find Cookies → https://fantasy.espn.com</li>`;
+          html += `<li>Copy the values for "swid" and "espn_s2"</li>`;
+          html += `<li>Paste them in the fields above</li>`;
+          html += `</ol>`;
+        } else if (error.message.includes('404')) {
+          html += `<p>League ID not found. Double-check your League ID.</p>`;
+        } else if (error.message.includes('invalid JSON') || error.message.includes('2025 season')) {
+          html += `<p><strong>Possible issues:</strong></p>`;
+          html += `<ul>`;
+          html += `<li><strong>League doesn't exist for 2025 yet</strong> - Try changing the year to 2024</li>`;
+          html += `<li><strong>Private league</strong> - Add your SWID and espn_s2 cookies above</li>`;
+          html += `<li><strong>League hasn't started</strong> - 2025 data may not be available yet</li>`;
+          html += `</ul>`;
+          html += `<p><em>Try the test again with year 2024 to verify your League ID works.</em></p>`;
+        } else {
+          html += `<p>Check the browser console (F12) for more details.</p>`;
+        }
+        
+        output.innerHTML = html;
+      }
+    }
+    
+    function getPosition(posId) {
+      const positions = {
+        1: 'QB',
+        2: 'RB',
+        3: 'WR',
+        4: 'TE',
+        5: 'K',
+        16: 'D/ST'
+      };
+      return positions[posId] || 'FLEX';
+    }
+  </script>
+  
+  <hr style="margin-top: 40px;">
+  
+  <h2>⚠️ CORS Issue Fix</h2>
+  <p><strong>Note:</strong> This test file uses a CORS proxy to bypass browser security restrictions when opened directly as a file.</p>
+  
+  <p><strong>For better testing:</strong> Run a local HTTP server:</p>
+  <pre>cd c:\Users\chrismccleary\Documents\ff_app
+python -m http.server 8000</pre>
+  <p>Then open: <code>http://localhost:8000/espn_api_test.html</code></p>
+  <p>And set <code>USE_PROXY = false</code> in the script.</p>
+  
+  <hr>
+  
+  <h2>📋 Instructions</h2>
+  
+  <h3>Finding Your League ID:</h3>
+  <ol>
+    <li>Go to your ESPN Fantasy Football league</li>
+    <li>Look at the URL: <code>https://fantasy.espn.com/football/league?leagueId=<strong>123456789</strong></code></li>
+    <li>Your League ID is the number at the end</li>
+  </ol>
+  
+  <h3>For Private Leagues:</h3>
+  <p>If your league is private, you'll need to provide cookies:</p>
+  <ol>
+    <li>While logged into ESPN, press <strong>F12</strong></li>
+    <li>Go to <strong>Application</strong> tab (Chrome) or <strong>Storage</strong> tab (Firefox)</li>
+    <li>Click <strong>Cookies</strong> → <code>https://fantasy.espn.com</code></li>
+    <li>Find and copy these two values:
+      <ul>
+        <li><strong>swid</strong>: Looks like <code>{ABC123-DEF456-...}</code></li>
+        <li><strong>espn_s2</strong>: Long string (200+ characters)</li>
+      </ul>
+    </li>
+    <li>Paste them in the fields above</li>
+  </ol>
+  
+  <h3>What This Test Does:</h3>
+  <ul>
+    <li>✅ Tests if ESPN API is accessible</li>
+    <li>✅ Verifies your League ID is correct</li>
+    <li>✅ Shows team and roster structure</li>
+    <li>✅ Displays full response in console for debugging</li>
+  </ul>
+  
+</body>
+</html>

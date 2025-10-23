@@ -131,12 +131,15 @@ Then open `fantasy_dashboard_v34_complete.html` in browser.
 1. ✅ **DONE - Test the fixes** - User confirmed calculations working correctly
 2. ✅ **DONE - Fixed display bug** - Projections tab now shows accuracy instead of correlation
 3. ✅ **DONE - Stricter threshold** - Changed from within 5 ranks to within 3 ranks
-4. **Name matching issues** - Some players may not match between files (e.g., "Patrick Mahomes II" vs "Patrick Mahomes")
-5. **Improve baseline calculation** - Currently uses 2024 averages, could use multi-year
-6. **Add more position tiers** - Currently has Elite/High/Mid/Stream
-7. **Export functionality** - Save projections to CSV
-8. **Waiver wire scoring** - Calculate actual points for available players
-9. **Matchup analysis** - Factor in opponent defense rankings
+4. ✅ **DONE - Fixed projection algorithm** - McConkey/Addison issues resolved
+5. ✅ **DONE - Git setup** - Repo initialized and committed to GitHub
+6. ⭐ **IN PROGRESS - ESPN API integration** - Add ESPN roster support alongside Sleeper
+7. **Name matching improvements** - Better handling of suffixes (Jr., III, etc.)
+8. **Improve baseline calculation** - Could use multi-year averages instead of just 2024
+9. **Add more position tiers** - Currently has Elite/High/Mid/Stream
+10. **Export functionality** - Save projections to CSV
+11. **Waiver wire scoring** - Calculate actual points for available players
+12. **Matchup analysis** - Factor in opponent defense rankings
 
 ---
 
@@ -396,6 +399,50 @@ Context: [Why this is needed]
 
 ---
 
+## 🏈 ESPN API Integration (In Progress)
+
+### Current State:
+- Dashboard currently supports **Sleeper API** for roster management
+- User wants to add **ESPN API** support
+
+### Resources Found:
+1. **Reddit Thread**: https://www.reddit.com/r/fantasyfootball/comments/im6mui/espn_api_question/
+2. **Public ESPN API**: https://github.com/pseudo-r/Public-ESPN-API
+
+### ESPN API Basics:
+```javascript
+// ESPN Fantasy API endpoint format
+https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/segments/0/leagues/{leagueId}
+
+// Parameters needed:
+- leagueId: Your ESPN league ID
+- year: Season year (2025)
+- view: Different endpoints (mRoster, mTeam, mMatchup, etc.)
+```
+
+### Key Differences from Sleeper:
+| Feature | Sleeper | ESPN |
+|---------|---------|------|
+| **Auth** | No auth needed | May need cookies for private leagues |
+| **League ID** | Simple string | Numeric ID |
+| **Player IDs** | Sleeper IDs | ESPN IDs |
+| **Roster Format** | Simple array | Nested lineup structure |
+
+### Implementation Plan:
+1. **Add ESPN connection UI** - Similar to Sleeper button
+2. **ESPN API client** - Fetch roster data
+3. **Player ID mapping** - Map ESPN IDs to player names
+4. **Unified roster format** - Convert both APIs to same structure
+5. **League selector** - If user has multiple leagues
+
+### Next Session Goals:
+- Research ESPN API authentication requirements
+- Build ESPN API client in JavaScript
+- Test with user's actual ESPN league
+- Implement player ID → name mapping
+
+---
+
 ## 📝 Update Instructions for This Handoff
 
 **⚠️ IMPORTANT**: This HANDOFF.md should be updated whenever:
@@ -470,8 +517,12 @@ in the new handoff so future conversations can continue updating it.
   - ✅ **FIXED**: Display bug - Projections tab now shows accuracy (not correlation)
   - ✅ **FIXED**: Changed accuracy threshold from "within 5 ranks" to "within 3 ranks"
   - ✅ **FIXED**: Updated column header from "Within 3pts %" to "Within 3 Ranks %"
-  - ✅ User testing confirmed calculations correct
-  - ⏳ **AWAITING**: Full testing of updated generator with all fixes
+  - ✅ **FIXED**: Projection algorithm bugs (McConkey/Addison issues)
+  - ✅ **FIXED**: Disabled over-aggressive bias adjustment
+  - ✅ **FIXED**: Improved handling of negative correlation
+  - ✅ **COMPLETED**: Git setup and initial commit to GitHub
+  - User testing confirmed calculations correct
+  - ⏳ **NEXT**: Add ESPN API integration for roster management
 
 - **Next Session Goals**:
   - Test all fixes
