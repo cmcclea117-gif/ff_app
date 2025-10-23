@@ -1466,6 +1466,158 @@ async function connectToSleeper() {{
   }}
 }}
 
+// ==================== ESPN EXTENSION SUPPORT ====================
+
+// Listen for ESPN roster from browser extension
+window.addEventListener('espnRosterLoaded', (event) => {{}}
+  const rosterData = event.detail;
+  console.log('🏈 ESPN roster received from extension:', rosterData);
+  
+  try {{
+    // Extract player names for roster checking
+    USER_ROSTER = rosterData.roster.map(p => p.name);
+    ROSTER_SOURCE = 'ESPN Extension';
+    window.ESPN_ROSTER_DATA = rosterData;
+    
+    console.log(`✅ Loaded ${{USER_ROSTER.length}} players from ${{rosterData.teamName}}`);
+    
+    // Save to localStorage for next visit
+    try {{
+      localStorage.setItem('espn_roster', JSON.stringify(rosterData));
+      localStorage.setItem('roster_source', 'ESPN');
+    }} catch (e) {{
+      console.warn('Could not save to localStorage:', e);
+    }}
+    
+    // Update connection status UI
+    updateConnectionStatus(rosterData);
+    
+    // Refresh tables to highlight rostered players
+    if (typeof renderProjectionsTable === 'function') {{
+      renderProjectionsTable();
+    }}
+    
+    // Show success notification
+    showRosterNotification(rosterData);
+    
+  }} catch (error) {{
+    console.error('Failed to process ESPN roster:', error);
+    alert('Failed to load ESPN roster: ' + error.message);
+  }}
+}});
+
+function updateConnectionStatus(rosterData) {{
+  // Update any connection status UI elements
+  const statusEl = document.getElementById('connectionStatus');
+  if (statusEl) {{
+    statusEl.innerHTML = `
+      <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 15px 0;">
+        <strong style="color: #155724;">🏈 ESPN Roster Connected</strong><br>
+        <span style="font-size: 0.9em; color: #155724;">
+          Team: ${{rosterData.teamName}}<br>
+          Players: ${{rosterData.roster.length}}<br>
+          Season: ${{rosterData.season}}<br>
+          <em>Last updated: ${{new Date(rosterData.fetchedAt).toLocaleString()}}</em>
+        </span>
+      </div>
+    `;
+  }}
+}}
+
+function showRosterNotification(rosterData) {{
+  // Create temporary notification
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 10000;
+    font-size: 15px;
+    max-width: 350px;
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <span style="font-size: 32px;">🏈</span>
+      <div>
+        <strong style="display: block; margin-bottom: 5px;">ESPN Roster Loaded!</strong>
+        <span style="font-size: 13px; opacity: 0.9;">
+          ${{rosterData.teamName}}<br>
+          ${{rosterData.roster.length}} players
+        </span>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Remove after 4 seconds
+  setTimeout(() => {{
+    notification.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(() => notification.remove(), 300);
+  }}, 4000);
+}}
+
+// Load saved ESPN roster on page load
+function loadSavedESPNRoster() {{
+  try {{
+    const saved = localStorage.getItem('espn_roster');
+    if (saved) {{
+      const rosterData = JSON.parse(saved);
+      USER_ROSTER = rosterData.roster.map(p => p.name);
+      ROSTER_SOURCE = 'ESPN';
+      window.ESPN_ROSTER_DATA = rosterData;
+      
+      console.log(`✅ Loaded saved ESPN roster: ${{rosterData.teamName}} (${{USER_ROSTER.length}} players)`);
+      
+      updateConnectionStatus(rosterData);
+    }}
+  }} catch (e) {{
+    console.warn('Could not load saved ESPN roster:', e);
+  }}
+}}
+
+// Call on page load
+if (document.readyState === 'loading') {{
+  document.addEventListener('DOMContentLoaded', loadSavedESPNRoster);
+}} else {{
+  loadSavedESPNRoster();
+}}
+
+// Add slide animation styles
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {{
+    from {{
+      transform: translateX(400px);
+      opacity: 0;
+    }}
+    to {{
+      transform: translateX(0);
+      opacity: 1;
+    }}
+  }}
+  @keyframes slideOut {{
+    from {{
+      transform: translateX(0);
+      opacity: 1;
+    }}
+    to {{
+      transform: translateX(400px);
+      opacity: 0;
+    }}
+  }}
+`;
+document.head.appendChild(style);
+
+// ==================== END ESPN EXTENSION SUPPORT ====================
+
 function populateTeamSelector(rosters, users) {{
   const selector = document.getElementById('teamSelector');
   selector.innerHTML = rosters.map((roster, idx) => {{

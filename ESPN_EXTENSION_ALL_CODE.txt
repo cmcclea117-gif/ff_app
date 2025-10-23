@@ -1,0 +1,666 @@
+# ESPN Chrome Extension - All Files in One Document
+
+Copy each section below into its own file as indicated.
+
+---
+
+## File 1: manifest.json
+
+```json
+{
+  "manifest_version": 3,
+  "name": "ESPN Fantasy Roster Connector",
+  "version": "1.0.0",
+  "description": "Connect your ESPN Fantasy Football roster to fantasy dashboard apps",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://fantasy.espn.com/*",
+    "https://*.github.io/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.github.io/*",
+        "http://localhost:*/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
+```
+
+---
+
+## File 2: popup.html
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+    }
+    
+    h1 {
+      font-size: 18px;
+      margin: 0 0 15px 0;
+      color: #333;
+    }
+    
+    .section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .section:last-child {
+      border-bottom: none;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 13px;
+      color: #555;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background: #0052a3;
+    }
+    
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    
+    .status.info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+    
+    .help-text {
+      font-size: 11px;
+      color: #777;
+      margin-top: 5px;
+    }
+    
+    .link {
+      color: #0066cc;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    
+    .link:hover {
+      text-decoration: underline;
+    }
+    
+    .roster-info {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    
+    .roster-info strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    details {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    
+    summary {
+      cursor: pointer;
+      color: #0066cc;
+      margin-bottom: 10px;
+    }
+    
+    code {
+      background: #f4f4f4;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏈 ESPN Roster Connector</h1>
+  
+  <div class="section">
+    <label>ESPN League ID:</label>
+    <input type="text" id="leagueId" placeholder="e.g., 40251425">
+    
+    <label>Season Year:</label>
+    <select id="seasonYear">
+      <option value="2024">2024</option>
+      <option value="2025" selected>2025</option>
+    </select>
+    
+    <details>
+      <summary>🔐 Private League? Add Cookies</summary>
+      
+      <label>SWID:</label>
+      <input type="text" id="swid" placeholder="{ABC123-...}">
+      
+      <label>espn_s2:</label>
+      <input type="password" id="espnS2" placeholder="Long string...">
+      
+      <p class="help-text">
+        <strong>How to get cookies:</strong><br>
+        1. Go to ESPN Fantasy<br>
+        2. Press F12 → Application → Cookies<br>
+        3. Copy <code>swid</code> and <code>espn_s2</code> values
+      </p>
+    </details>
+  </div>
+  
+  <div class="section">
+    <button id="fetchRoster">Fetch My Roster</button>
+    <button id="clearData" style="background: #dc3545; margin-top: 5px;">Clear Saved Data</button>
+    
+    <div id="status"></div>
+  </div>
+  
+  <div class="section" id="rosterSection" style="display: none;">
+    <label>Your Roster:</label>
+    <div class="roster-info" id="rosterInfo"></div>
+    
+    <button id="injectRoster" style="background: #28a745; margin-top: 10px;">
+      📤 Send to Dashboard
+    </button>
+  </div>
+  
+  <div class="section">
+    <p class="help-text" style="margin: 0;">
+      This extension fetches your ESPN roster and injects it into compatible fantasy dashboards.
+      <br><br>
+      <a href="https://github.com/cmcclea117-gif/ff_app" class="link" target="_blank">
+        View Dashboard on GitHub →
+      </a>
+    </p>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
+```
+
+---
+
+## File 3: popup.js
+
+```javascript
+// Popup logic for ESPN Roster Connector extension
+
+let currentRoster = null;
+
+// Load saved config on popup open
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load saved settings
+  const settings = await chrome.storage.sync.get([
+    'leagueId', 'seasonYear', 'swid', 'espnS2'
+  ]);
+  
+  if (settings.leagueId) document.getElementById('leagueId').value = settings.leagueId;
+  if (settings.seasonYear) document.getElementById('seasonYear').value = settings.seasonYear;
+  if (settings.swid) document.getElementById('swid').value = settings.swid;
+  if (settings.espnS2) document.getElementById('espnS2').value = settings.espnS2;
+  
+  // Load cached roster if exists
+  const cached = await chrome.storage.local.get(['cachedRoster']);
+  if (cached.cachedRoster) {
+    currentRoster = cached.cachedRoster;
+    displayRoster(currentRoster);
+  }
+  
+  // Add event listeners
+  document.getElementById('fetchRoster').addEventListener('click', fetchRoster);
+  document.getElementById('clearData').addEventListener('click', clearData);
+  document.getElementById('injectRoster')?.addEventListener('click', injectRoster);
+});
+
+async function fetchRoster() {
+  const leagueId = document.getElementById('leagueId').value.trim();
+  const seasonYear = document.getElementById('seasonYear').value;
+  const swid = document.getElementById('swid').value.trim();
+  const espnS2 = document.getElementById('espnS2').value.trim();
+  
+  const statusDiv = document.getElementById('status');
+  const button = document.getElementById('fetchRoster');
+  
+  if (!leagueId) {
+    showStatus('error', 'Please enter your ESPN League ID');
+    return;
+  }
+  
+  // Save settings
+  await chrome.storage.sync.set({ leagueId, seasonYear, swid, espnS2 });
+  
+  // Show loading
+  button.disabled = true;
+  button.textContent = '⏳ Fetching...';
+  showStatus('info', 'Connecting to ESPN...');
+  
+  try {
+    // Build URL
+    const url = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${seasonYear}/segments/0/leagues/${leagueId}?view=mRoster&view=mTeam`;
+    
+    // Build headers with cookies if provided
+    const headers = {};
+    if (swid && espnS2) {
+      headers['Cookie'] = `swid=${swid}; espn_s2=${espnS2}`;
+    }
+    
+    // Fetch from ESPN (no CORS in extension!)
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers,
+      credentials: swid ? 'include' : 'omit'
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Private league - please add your SWID and espn_s2 cookies');
+      } else if (response.status === 404) {
+        throw new Error(`League ${leagueId} not found for ${seasonYear}`);
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    }
+    
+    const data = await response.json();
+    
+    // Parse roster
+    const roster = parseRoster(data);
+    
+    if (!roster) {
+      throw new Error('Failed to parse roster data');
+    }
+    
+    // Save to cache
+    currentRoster = roster;
+    await chrome.storage.local.set({ cachedRoster: roster });
+    
+    // Display
+    displayRoster(roster);
+    showStatus('success', `✅ Found ${roster.roster.length} players!`);
+    
+  } catch (error) {
+    console.error('Fetch error:', error);
+    showStatus('error', `❌ ${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Fetch My Roster';
+  }
+}
+
+function parseRoster(data) {
+  const teams = data.teams || [];
+  
+  if (teams.length === 0) {
+    throw new Error('No teams found in league');
+  }
+  
+  // For now, use the first team
+  // TODO: Let user select if multiple teams
+  const team = teams[0];
+  const teamName = `${team.location || ''} ${team.nickname || ''}`.trim();
+  
+  const entries = team.roster?.entries || [];
+  
+  const positionMap = {
+    1: 'QB',
+    2: 'RB',
+    3: 'WR',
+    4: 'TE',
+    5: 'K',
+    16: 'D/ST'
+  };
+  
+  const roster = entries.map(entry => {
+    const player = entry.playerPoolEntry?.player || {};
+    return {
+      name: player.fullName || 'Unknown',
+      position: positionMap[player.defaultPositionId] || 'FLEX',
+      espnId: entry.playerId,
+      lineupSlot: entry.lineupSlotId
+    };
+  });
+  
+  return {
+    teamName: teamName,
+    roster: roster,
+    leagueId: data.id,
+    season: data.seasonId,
+    fetchedAt: new Date().toISOString()
+  };
+}
+
+function displayRoster(roster) {
+  const section = document.getElementById('rosterSection');
+  const info = document.getElementById('rosterInfo');
+  
+  // Show section
+  section.style.display = 'block';
+  
+  // Display info
+  const playersByPos = {};
+  roster.roster.forEach(p => {
+    if (!playersByPos[p.position]) playersByPos[p.position] = [];
+    playersByPos[p.position].push(p.name);
+  });
+  
+  let html = `<strong>${roster.teamName}</strong><br>`;
+  html += `${roster.roster.length} players • ${roster.season}<br><br>`;
+  
+  Object.keys(playersByPos).sort().forEach(pos => {
+    html += `<strong>${pos}:</strong> ${playersByPos[pos].length}<br>`;
+  });
+  
+  info.innerHTML = html;
+}
+
+async function injectRoster() {
+  if (!currentRoster) {
+    showStatus('error', 'No roster loaded. Fetch your roster first.');
+    return;
+  }
+  
+  const button = document.getElementById('injectRoster');
+  button.disabled = true;
+  button.textContent = '📤 Sending...';
+  
+  try {
+    // Get active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab) {
+      throw new Error('No active tab found');
+    }
+    
+    // Send roster to content script
+    await chrome.tabs.sendMessage(tab.id, {
+      type: 'INJECT_ESPN_ROSTER',
+      roster: currentRoster
+    });
+    
+    showStatus('success', '✅ Roster sent to dashboard!');
+    
+    // Close popup after 1 second
+    setTimeout(() => window.close(), 1000);
+    
+  } catch (error) {
+    console.error('Inject error:', error);
+    showStatus('error', `❌ ${error.message}\nMake sure you're on the dashboard page.`);
+  } finally {
+    button.disabled = false;
+    button.textContent = '📤 Send to Dashboard';
+  }
+}
+
+async function clearData() {
+  if (confirm('Clear all saved data including league info and cached roster?')) {
+    await chrome.storage.sync.clear();
+    await chrome.storage.local.clear();
+    
+    // Clear form
+    document.getElementById('leagueId').value = '';
+    document.getElementById('swid').value = '';
+    document.getElementById('espnS2').value = '';
+    
+    // Hide roster
+    document.getElementById('rosterSection').style.display = 'none';
+    currentRoster = null;
+    
+    showStatus('info', 'All data cleared');
+  }
+}
+
+function showStatus(type, message) {
+  const statusDiv = document.getElementById('status');
+  statusDiv.className = `status ${type}`;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+```
+
+---
+
+## File 4: content.js
+
+```javascript
+// Content script - runs on dashboard pages
+
+console.log('ESPN Roster Connector: Content script loaded');
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'INJECT_ESPN_ROSTER') {
+    console.log('Received ESPN roster from extension:', message.roster);
+    
+    try {
+      injectRoster(message.roster);
+      sendResponse({ success: true });
+    } catch (error) {
+      console.error('Failed to inject roster:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+    
+    return true;
+  }
+});
+
+function injectRoster(rosterData) {
+  // Create a custom event with roster data
+  const event = new CustomEvent('espnRosterLoaded', {
+    detail: rosterData
+  });
+  
+  window.dispatchEvent(event);
+  
+  // Also try to inject directly if dashboard has global variables
+  if (typeof window.USER_ROSTER !== 'undefined') {
+    window.USER_ROSTER = rosterData.roster.map(p => p.name);
+    window.ROSTER_SOURCE = 'ESPN';
+    window.ESPN_ROSTER_DATA = rosterData;
+    
+    console.log('Injected roster into window.USER_ROSTER:', window.USER_ROSTER);
+    
+    // Trigger refresh if function exists
+    if (typeof window.renderProjectionsTable === 'function') {
+      window.renderProjectionsTable();
+      console.log('Refreshed projections table');
+    }
+    
+    showNotification(rosterData);
+  } else {
+    console.warn('Dashboard not detected. Roster data dispatched via event.');
+  }
+}
+
+function showNotification(rosterData) {
+  const notification = document.createElement('div');
+  notification.id = 'espn-roster-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    max-width: 300px;
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 24px;">🏈</span>
+      <div>
+        <strong>ESPN Roster Loaded!</strong><br>
+        <span style="font-size: 12px; opacity: 0.9;">
+          ${rosterData.teamName} • ${rosterData.roster.length} players
+        </span>
+      </div>
+    </div>
+  `;
+  
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(400px); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+```
+
+---
+
+## File 5: background.js
+
+```javascript
+// Background service worker
+
+console.log('ESPN Roster Connector: Background service worker loaded');
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    console.log('ESPN Roster Connector installed!');
+    chrome.tabs.create({
+      url: 'https://github.com/cmcclea117-gif/ff_app'
+    });
+  }
+});
+```
+
+---
+
+## Folder Structure
+
+Create this structure:
+
+```
+espn-extension/
+├── manifest.json
+├── popup.html
+├── popup.js
+├── content.js
+├── background.js
+└── icons/
+    ├── icon16.png  (you need to create these)
+    ├── icon48.png
+    └── icon128.png
+```
+
+---
+
+## Creating Icons (Quick Method)
+
+1. Screenshot the 🏈 emoji at large size
+2. Use any image editor to resize to:
+   - 128x128 pixels → save as icon128.png
+   - 48x48 pixels → save as icon48.png
+   - 16x16 pixels → save as icon16.png
+3. Put all 3 in the `icons/` folder
+
+---
+
+## Loading in Chrome
+
+1. Go to `chrome://extensions/`
+2. Enable "Developer mode" (top right)
+3. Click "Load unpacked"
+4. Select the `espn-extension` folder
+5. Done!
+
+---
+
+That's everything! Just copy each section into its own file as indicated.

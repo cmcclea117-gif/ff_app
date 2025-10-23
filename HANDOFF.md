@@ -399,47 +399,51 @@ Context: [Why this is needed]
 
 ---
 
-## 🏈 ESPN API Integration (In Progress)
+## 🏈 ESPN API Integration - Browser Extension Solution
 
-### Current State:
-- Dashboard currently supports **Sleeper API** for roster management
-- User wants to add **ESPN API** support
+### Problem Identified:
+- ESPN API blocks CORS from all web pages (including GitHub Pages)
+- Cannot fetch roster directly from JavaScript in self-contained HTML
 
-### Resources Found:
-1. **Reddit Thread**: https://www.reddit.com/r/fantasyfootball/comments/im6mui/espn_api_question/
-2. **Public ESPN API**: https://github.com/pseudo-r/Public-ESPN-API
+### ✅ Solution: Chrome Extension
+Created a browser extension that:
+1. **Bypasses CORS** (extensions have no CORS restrictions)
+2. **Fetches roster** with user's League ID + cookies
+3. **Injects data** into dashboard via custom events
+4. **Fully client-side** - no backend server needed!
 
-### ESPN API Basics:
-```javascript
-// ESPN Fantasy API endpoint format
-https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/segments/0/leagues/{leagueId}
+### Files Created:
+- `espn-extension/` - Complete Chrome extension
+  - `manifest.json` - Extension configuration
+  - `popup.html` - User interface
+  - `popup.js` - Roster fetching logic
+  - `content.js` - Dashboard injection script
+  - `background.js` - Service worker
+  - `README.md` - Installation guide
+  - `ICON_GUIDE.md` - How to create icons
+- `DASHBOARD_EXTENSION_INTEGRATION.md` - Code to add to dashboard
 
-// Parameters needed:
-- leagueId: Your ESPN league ID
-- year: Season year (2025)
-- view: Different endpoints (mRoster, mTeam, mMatchup, etc.)
+### How It Works:
+```
+User configures extension → Extension fetches from ESPN (no CORS!) 
+→ User opens dashboard → Clicks "Send to Dashboard" 
+→ Extension injects roster → Dashboard highlights players ✅
 ```
 
-### Key Differences from Sleeper:
-| Feature | Sleeper | ESPN |
-|---------|---------|------|
-| **Auth** | No auth needed | May need cookies for private leagues |
-| **League ID** | Simple string | Numeric ID |
-| **Player IDs** | Sleeper IDs | ESPN IDs |
-| **Roster Format** | Simple array | Nested lineup structure |
+### Benefits:
+- ✅ No backend server needed
+- ✅ No CORS issues
+- ✅ User controls their own data
+- ✅ Works on GitHub Pages
+- ✅ Can be published to Chrome Web Store
+- ✅ Dashboard stays self-contained
 
-### Implementation Plan:
-1. **Add ESPN connection UI** - Similar to Sleeper button
-2. **ESPN API client** - Fetch roster data
-3. **Player ID mapping** - Map ESPN IDs to player names
-4. **Unified roster format** - Convert both APIs to same structure
-5. **League selector** - If user has multiple leagues
-
-### Next Session Goals:
-- Research ESPN API authentication requirements
-- Build ESPN API client in JavaScript
-- Test with user's actual ESPN league
-- Implement player ID → name mapping
+### Next Steps:
+1. Create extension icons (see ICON_GUIDE.md)
+2. Load extension in Chrome for testing
+3. Add event listener code to dashboard
+4. Test with user's actual ESPN league
+5. Optionally publish to Chrome Web Store
 
 ---
 
