@@ -1469,7 +1469,7 @@ async function connectToSleeper() {{
 // ==================== ESPN EXTENSION SUPPORT ====================
 
 // Listen for ESPN roster from browser extension
-window.addEventListener('espnRosterLoaded', (event) => {{}}
+window.addEventListener('espnRosterLoaded', (event) => {{}})
   const rosterData = event.detail;
   console.log('🏈 ESPN roster received from extension:', rosterData);
   

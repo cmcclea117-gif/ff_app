@@ -47,36 +47,48 @@ async function fetchRoster() {
   // Show loading
   button.disabled = true;
   button.textContent = '⏳ Fetching...';
-  showStatus('info', 'Connecting to ESPN...');
+  showStatus('info', 'Connecting to ESPN via background script...');
   
   try {
-    // Build URL
-    const url = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${seasonYear}/segments/0/leagues/${leagueId}?view=mRoster&view=mTeam`;
+    // Delegate to background script which has better cookie handling
+    console.log('Popup: Sending fetch request to background script...');
     
-    // Build headers with cookies if provided
-    const headers = {};
-    if (swid && espnS2) {
-      headers['Cookie'] = `swid=${swid}; espn_s2=${espnS2}`;
-    }
-    
-    // Fetch from ESPN (no CORS in extension!)
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: headers,
-      credentials: swid ? 'include' : 'omit'
+    const response = await chrome.runtime.sendMessage({
+      type: 'FETCH_ESPN_ROSTER',
+      config: { leagueId, seasonYear, swid, espnS2 }
     });
     
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Private league - please add your SWID and espn_s2 cookies');
-      } else if (response.status === 404) {
-        throw new Error(`League ${leagueId} not found for ${seasonYear}`);
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+    console.log('Popup: Got response from background:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error);
     }
     
-    const data = await response.json();
+    const data = response.roster;
+    
+    // Parse roster
+    const roster = parseRoster(data);
+    
+    if (!roster) {
+      throw new Error('Failed to parse roster data');
+    }
+    
+    // Save to cache
+    currentRoster = roster;
+    await chrome.storage.local.set({ cachedRoster: roster });
+    
+    // Display
+    displayRoster(roster);
+    showStatus('success', `✅ Found ${roster.roster.length} players!`);
+    
+  } catch (error) {
+    console.error('Popup: Fetch error:', error);
+    showStatus('error', `❌ ${error.message || error}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Fetch My Roster';
+  }
+}
     
     // Parse roster
     const roster = parseRoster(data);

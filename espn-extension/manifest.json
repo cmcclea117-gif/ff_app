@@ -5,7 +5,8 @@
   "description": "Connect your ESPN Fantasy Football roster to fantasy dashboard apps",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "cookies"
   ],
   "host_permissions": [
     "https://fantasy.espn.com/*",
