@@ -893,40 +893,7 @@ tbody tr:hover {{
     
     <!-- Historical Tab -->
     <div id="historical" class="tab-content">
-      
-      <!-- Player Reliability Section -->
-      <div style="margin-bottom: 40px;">
-        <h3>📊 Player Historical Reliability</h3>
-        <p style="color: #a0aec0; margin-bottom: 15px;">
-          Shows how reliable expert rankings have been for each player (5+ games minimum)
-        </p>
-        <div class="table-container">
-          <table id="historicalTable">
-            <thead>
-              <tr>
-                <th data-column="player" onclick="sortTable('historical', 'player', 'string')" style="cursor: pointer;">Player</th>
-                <th data-column="pos" onclick="sortTable('historical', 'pos', 'string')" style="cursor: pointer;">Pos</th>
-                <th data-column="games" onclick="sortTable('historical', 'games', 'number')" style="cursor: pointer;">Games</th>
-                <th data-column="correlation" onclick="sortTable('historical', 'correlation', 'number')" style="cursor: pointer;">Correlation</th>
-                <th data-column="mae" onclick="sortTable('historical', 'mae', 'number')" style="cursor: pointer;" title="Accuracy score based on Mean Absolute Error - hover over values to see MAE">Accuracy</th>
-                <th data-column="avgDiff" onclick="sortTable('historical', 'avgDiff', 'number')" style="cursor: pointer;" title="Negative = beats projections, Positive = misses projections">Trend</th>
-                <th data-column="avgScore" onclick="sortTable('historical', 'avgScore', 'number')" style="cursor: pointer;">Avg Score</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      
-      <!-- Positional Baselines Section -->
-      <div>
-        <h3>📈 Positional Baseline Averages (2022-2024)</h3>
-        <p style="color: #a0aec0; margin-bottom: 15px;">
-          Historical average scores by position rank across the last 3 years
-        </p>
-        <div id="baselineTables"></div>
-      </div>
-      
+      <div id="historicalTables"></div>
     </div>
   </div>
 </div>
@@ -1478,10 +1445,6 @@ function calculateFPAccuracy() {{
       const within3 = rankDiffs.filter(d => d <= 3).length / rankDiffs.length;  // Within 3 ranks (stricter)
       const avgDiff = projectedRanks.reduce((sum, p, i) => sum + (actualRanks[i] - p), 0) / projectedRanks.length;
       
-      // ✅ Calculate average score from all weeks played
-      const allScores = Object.values(weeks).filter(score => score !== undefined && score > 0);
-      const avgScore = allScores.length > 0 ? allScores.reduce((a, b) => a + b, 0) / allScores.length : 0;
-      
       FP_ACCURACY[name] = {{
         position: pos,
         games: projectedRanks.length,
@@ -1489,8 +1452,7 @@ function calculateFPAccuracy() {{
         correlation: correlation,
         mae: mae,
         accuracy: within3,
-        avgDiff: avgDiff,
-        avgScore: avgScore  // ✅ ADD THIS
+        avgDiff: avgDiff
       }};
       
       // Track position-level accuracy
@@ -1849,9 +1811,9 @@ function renderWaiverTable() {{
   }}).join('');
 }}
 
-function renderPositionalBaselines() {{
+function renderHistoricalTable() {{
   const positions = ['QB', 'RB', 'WR', 'TE'];
-  const container = document.getElementById('baselineTables');
+  const container = document.getElementById('historicalTables');
   
   const html = positions.map(pos => {{
     const posData = {{}};
@@ -1861,16 +1823,14 @@ function renderPositionalBaselines() {{
       const yearData = HISTORICAL_DATA[CURRENT_SCORING][year] || [];
       const posPlayers = yearData.filter(p => p.pos === pos);
       
-      // ✅ Calculate averages first, then sort by average score
-      const playersWithAvg = posPlayers.map(player => {{
-        const weeks = Object.values(player.w);
-        const avg = weeks.length > 0 ? weeks.reduce((a, b) => a + b, 0) / weeks.length : 0;
-        return {{ player, avg }};
-      }}).sort((a, b) => b.avg - a.avg);  // Sort by average score descending
-      
-      playersWithAvg.forEach(({{ player, avg }}, idx) => {{
+      posPlayers.forEach((player, idx) => {{
         const rank = idx + 1;
         if (rank > 24) return;
+        
+        const weeks = Object.values(player.w);
+        if (weeks.length === 0) return;
+        
+        const avg = weeks.reduce((a, b) => a + b, 0) / weeks.length;
         
         if (!posData[rank]) posData[rank] = {{}};
         posData[rank][year] = avg;
@@ -1917,100 +1877,6 @@ function renderPositionalBaselines() {{
   }}).join('');
   
   container.innerHTML = html;
-}}
-
-function renderHistoricalTable() {{
-  console.log('🔍 renderHistoricalTable called');
-  console.log('FP_ACCURACY exists?', typeof FP_ACCURACY !== 'undefined');
-  console.log('FP_ACCURACY keys:', FP_ACCURACY ? Object.keys(FP_ACCURACY).length : 0);
-  console.log('PROJECTIONS exists?', typeof PROJECTIONS !== 'undefined');
-  console.log('PROJECTIONS length:', PROJECTIONS ? PROJECTIONS.length : 0);
-  
-  // Check if FP_ACCURACY is empty
-  if (!FP_ACCURACY || Object.keys(FP_ACCURACY).length === 0) {{
-    console.warn('⚠️ FP_ACCURACY is empty - no historical data available');
-    const tbody = document.getElementById('historicalTable')?.querySelector('tbody');
-    if (tbody) {{
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No historical data available yet. Play more games to build accuracy statistics.</td></tr>';
-    }}
-    return;
-  }}
-  
-  // Get all players with historical FP_ACCURACY data (5+ games)
-  let data = Object.entries(FP_ACCURACY)
-    .filter(([name, acc]) => acc.games >= 5)
-    .map(([name, acc]) => {{
-      // Get position from FP_ACCURACY (already stored from SEASON data)
-      // Fallback to PROJECTIONS if needed
-      let pos = acc.position || '?';
-      if (pos === '?' || !pos) {{
-        const playerProj = PROJECTIONS.find(p => p.p === name);
-        pos = playerProj?.pos || '?';
-      }}
-      
-      return {{
-        player: name,
-        pos: pos,
-        games: acc.games,
-        correlation: acc.correlation || 0,
-        mae: acc.mae || 0,
-        avgScore: acc.avgScore || 0,
-        avgDiff: acc.avgDiff || 0  // ✅ ADD THIS
-      }};
-    }});
-  
-  // ✅ APPLY SORTING
-  data = applySorting(data, 'historical');
-  
-  // Get table body
-  const tbody = document.getElementById('historicalTable')?.querySelector('tbody');
-  if (!tbody) {{
-    console.warn('Historical table tbody not found');
-    return;
-  }}
-  
-  // Render rows
-  tbody.innerHTML = data.map(p => {{
-    // Color code by correlation strength
-    let corrClass = 'low-acc';
-    if (p.correlation >= 0.7) corrClass = 'high-acc';
-    else if (p.correlation >= 0.5) corrClass = 'med-acc';
-    
-    // Calculate accuracy score from MAE (0-100 scale)
-    // Formula: 100 / (1 + MAE)
-    // MAE of 0 = 100%, MAE of 3 = 75%, MAE of 10 = 91%, MAE of 20 = 83%
-    const accuracyScore = 100 / (1 + (p.mae || 0));
-    
-    // Determine accuracy class for color coding
-    let accClass = 'low-acc';
-    if (accuracyScore >= 85) accClass = 'high-acc';
-    else if (accuracyScore >= 70) accClass = 'med-acc';
-    
-    // Trend indicator (avgDiff)
-    const trendIcon = p.avgDiff < -2 ? '📈' : p.avgDiff > 2 ? '📉' : '➡️';
-    const trendClass = p.avgDiff < -2 ? 'trend-up' : p.avgDiff > 2 ? 'trend-down' : 'trend-stable';
-    const trendText = p.avgDiff > 0 ? '+' : '';
-    
-    return `
-      <tr class="pos-${{p.pos}}">
-        <td><strong>${{p.player}}</strong></td>
-        <td>${{p.pos}}</td>
-        <td>${{p.games}}</td>
-        <td class="${{corrClass}}">
-          ${{(p.correlation * 100).toFixed(0)}}%
-        </td>
-        <td class="${{accClass}}" title="MAE: ${{(p.mae || 0).toFixed(1)}} ranks">
-          ${{accuracyScore.toFixed(0)}}%
-        </td>
-        <td class="${{trendClass}}" title="Avg rank difference: ${{trendText}}${{p.avgDiff.toFixed(1)}}">
-          ${{trendIcon}} ${{trendText}}${{p.avgDiff.toFixed(1)}}
-        </td>
-        <td>${{(p.avgScore || 0).toFixed(1)}}</td>
-      </tr>
-    `;
-  }}).join('');
-  
-  console.log('✅ Historical table rendered with', data.length, 'players');
 }}
 
 function isOnRoster(playerName) {{
@@ -2220,8 +2086,7 @@ document.addEventListener('DOMContentLoaded', () => {{
   renderReliabilityTable();
   renderRankingsTable('QB');
   renderWaiverTable();
-  renderHistoricalTable();        // ← Player reliability
-  renderPositionalBaselines();     // ← Your baseline data
+  renderHistoricalTable();
   
   console.log('✅ Dashboard ready!');
 }});

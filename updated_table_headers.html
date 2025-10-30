@@ -1,0 +1,114 @@
+# UPDATE ALL TABLE HEADERS WITH SORTING
+
+Replace each table's `<thead>` section with these sortable versions:
+
+## 1. PROJECTIONS TABLE (around line 758)
+
+```html
+<table id="projectionsTable">
+  <thead>
+    <tr>
+      <th data-column="p" onclick="sortTable('projections', 'p', 'string')" style="cursor: pointer;">Player</th>
+      <th data-column="pos" onclick="sortTable('projections', 'pos', 'string')" style="cursor: pointer;">Pos</th>
+      <th data-column="rank" onclick="sortTable('projections', 'rank', 'number')" style="cursor: pointer;">Rank</th>
+      <th data-column="proj" onclick="sortTable('projections', 'proj', 'number')" style="cursor: pointer;">Week {nw} Proj</th>
+      <th data-column="floor" onclick="sortTable('projections', 'floor', 'number')" style="cursor: pointer;">Floor-Ceiling</th>
+      <th data-column="tier" onclick="sortTable('projections', 'tier', 'string')" style="cursor: pointer;">Tier</th>
+      <th data-column="correlation" onclick="sortTable('projections', 'correlation', 'number')" style="cursor: pointer;">FP Acc</th>
+      <th data-column="avgDiff" onclick="sortTable('projections', 'avgDiff', 'number')" style="cursor: pointer;">Trend</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
+## 2. RELIABILITY TABLE (around line 778)
+
+```html
+<table id="reliabilityTable">
+  <thead>
+    <tr>
+      <th data-column="player" onclick="sortTable('reliability', 'player', 'string')" style="cursor: pointer;">Player</th>
+      <th data-column="pos" onclick="sortTable('reliability', 'pos', 'string')" style="cursor: pointer;">Pos</th>
+      <th data-column="games" onclick="sortTable('reliability', 'games', 'number')" style="cursor: pointer;">Games</th>
+      <th data-column="correlation" onclick="sortTable('reliability', 'correlation', 'number')" style="cursor: pointer;">FP Accuracy</th>
+      <th data-column="mae" onclick="sortTable('reliability', 'mae', 'number')" style="cursor: pointer;">MAE</th>
+      <th data-column="accuracy" onclick="sortTable('reliability', 'accuracy', 'number')" style="cursor: pointer;">Within 3 Ranks %</th>
+      <th data-column="avgScore" onclick="sortTable('reliability', 'avgScore', 'number')" style="cursor: pointer;">Avg Score</th>
+      <th data-column="avgDiff" onclick="sortTable('reliability', 'avgDiff', 'number')" style="cursor: pointer;">Avg Diff</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
+## 3. RANKINGS TABLE (around line 805)
+
+```html
+<table id="rankingsTable">
+  <thead>
+    <tr>
+      <th data-column="rank" onclick="sortTable('rankings', 'rank', 'number')" style="cursor: pointer;">Rank</th>
+      <th data-column="p" onclick="sortTable('rankings', 'p', 'string')" style="cursor: pointer;">Player</th>
+      <th data-column="avgScore" onclick="sortTable('rankings', 'avgScore', 'number')" style="cursor: pointer;">Avg Score</th>
+      <th data-column="games" onclick="sortTable('rankings', 'games', 'number')" style="cursor: pointer;">Games</th>
+      <th data-column="correlation" onclick="sortTable('rankings', 'correlation', 'number')" style="cursor: pointer;">FP Acc</th>
+      <th data-column="proj" onclick="sortTable('rankings', 'proj', 'number')" style="cursor: pointer;">Week {nw} Proj</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
+## 4. WAIVER TABLE (around line 832)
+
+```html
+<table id="waiverTable">
+  <thead>
+    <tr>
+      <th data-column="priority" onclick="sortTable('waiver', 'proj', 'number')" style="cursor: pointer;">Priority</th>
+      <th data-column="p" onclick="sortTable('waiver', 'p', 'string')" style="cursor: pointer;">Player</th>
+      <th data-column="pos" onclick="sortTable('waiver', 'pos', 'string')" style="cursor: pointer;">Pos</th>
+      <th data-column="proj" onclick="sortTable('waiver', 'proj', 'number')" style="cursor: pointer;">Week {nw} Proj</th>
+      <th data-column="tier" onclick="sortTable('waiver', 'tier', 'string')" style="cursor: pointer;">Tier</th>
+      <th data-column="avgDiff" onclick="sortTable('waiver', 'avgDiff', 'number')" style="cursor: pointer;">Trend</th>
+      <th data-column="correlation" onclick="sortTable('waiver', 'correlation', 'number')" style="cursor: pointer;">FP Acc</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
+## 5. HISTORICAL TABLE (search for "historicalTable")
+
+```html
+<table id="historicalTable">
+  <thead>
+    <tr>
+      <th data-column="player" onclick="sortTable('historical', 'player', 'string')" style="cursor: pointer;">Player</th>
+      <th data-column="pos" onclick="sortTable('historical', 'pos', 'string')" style="cursor: pointer;">Pos</th>
+      <th data-column="games" onclick="sortTable('historical', 'games', 'number')" style="cursor: pointer;">Games</th>
+      <th data-column="correlation" onclick="sortTable('historical', 'correlation', 'number')" style="cursor: pointer;">Correlation</th>
+      <th data-column="mae" onclick="sortTable('historical', 'mae', 'number')" style="cursor: pointer;">MAE</th>
+      <th data-column="avgScore" onclick="sortTable('historical', 'avgScore', 'number')" style="cursor: pointer;">Avg Score</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
+## 6. MATCHUPS TABLE (if it exists)
+
+```html
+<table id="matchupsTable">
+  <thead>
+    <tr>
+      <th data-column="player" onclick="sortTable('matchups', 'player', 'string')" style="cursor: pointer;">Player</th>
+      <th data-column="pos" onclick="sortTable('matchups', 'pos', 'string')" style="cursor: pointer;">Pos</th>
+      <th data-column="proj" onclick="sortTable('matchups', 'proj', 'number')" style="cursor: pointer;">Projection</th>
+      <th data-column="opponent" onclick="sortTable('matchups', 'opponent', 'string')" style="cursor: pointer;">Opponent</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
