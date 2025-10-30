@@ -1,0 +1,308 @@
+# 🎨 Reliability Tab v2.1 - Visual Mockup
+
+## Complete Interface With New Features
+
+```
+═══════════════════════════════════════════════════════════════════════════════════════
+                  🏆 Top 20 Most Reliable Players          [🌍 Overall] [💎 Available]
+─────────────────────────────────────────────────────────────────────────────────────────
+                                  ↑ NEW TOGGLE BUTTONS ↑
+
+   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+   │    🟢        │  │    🟢        │  │    🟢        │  │    🟢        │  │    🟡        │
+   │ #1 Jaydon    │  │ #2 Dillon    │  │ #3 Cam       │  │ #4 Devin     │  │ #5⭐ Devin   │
+   │  Blue        │  │  Gabriel     │  │  Ward        │  │  Neal        │  │  Singletary  │
+   │              │  │              │  │              │  │              │  │              │
+   │  ┌──┐ 2.0    │  │  ┌──┐ 8.3    │  │  ┌──┐ 9.1    │  │  ┌──┐ 1.7    │  │  ┌──┐ 1.8    │
+   │  │RB│ PPG    │  │  │RB│ PPG    │  │  │RB│ PPG    │  │  │RB│ PPG    │  │  │RB│ PPG    │
+   │  └──┘        │  │  └──┘        │  │  └──┘        │  │  └──┘        │  │  └──┘        │
+   │     86       │  │     81       │  │     71       │  │     68       │  │     68       │
+   │ MAE: 2.7     │  │ MAE: 4.8     │  │ MAE: 3.6     │  │ MAE: 10.3    │  │ MAE: 7.1     │
+   └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘
+
+   (...15 more cards)
+
+   ↑ Cards update when you change Position, Min Games, or Min Avg Points filters
+   ↑ Toggle between Overall (all) and Available (waiver wire only)
+═══════════════════════════════════════════════════════════════════════════════════════
+
+                     📊 Understanding Reliability Metrics
+─────────────────────────────────────────────────────────────────────────────────────────
+Reliability Score (0-100): Composite metric combining accuracy, consistency, and sample.
+
+  • 90+: 🟢 Elite - Trust these projections
+  • 75-89: 🟡 Good - Reliable with minor variance
+  • 60-74: 🟠 Fair - Use with caution
+  • <60: 🔴 Poor - High unpredictability
+═══════════════════════════════════════════════════════════════════════════════════════
+
+                              🎛️ FILTERS (NEW HORIZONTAL LAYOUT)
+─────────────────────────────────────────────────────────────────────────────────────────
+┌────────────────┐ ┌──────────┐ ┌────────────┐ ┌──────────────┐ ┌──────────┐ ┌────────┐
+│ 🔍 Search      │ │ 📍 Pos   │ │ 🎮 Games   │ │ ⚡ Min Points │ │ 👥 Roster│ │ 🔄     │
+│ ┌────────────┐ │ │ ┌──────┐ │ │ ┌────────┐ │ │ ┌──────────┐ │ │ ┌──────┐ │ │ Reset  │
+│ │Type name...│ │ │ │All  ▾│ │ │ │5+ Games▾│ │ │ │5+ PPG   ▾│ │ │ │All  ▾│ │ │        │
+│ └────────────┘ │ │ └──────┘ │ │ └────────┘ │ │ └──────────┘ │ │ └──────┘ │ │        │
+└────────────────┘ └──────────┘ └────────────┘ └──────────────┘ └──────────┘ └────────┘
+      ↑ Table          ↑ Both        ↑ Both        ↑ Both         ↑ Table      ↑ Both
+     Only            Top 20 +       Top 20 +      Top 20 +        Only        + Reset
+                     Table          Table         Table                       Toggle
+═══════════════════════════════════════════════════════════════════════════════════════
+```
+
+---
+
+## Button State Examples
+
+### When "Overall" Mode Active
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🏆 Top 20 Most Reliable Players                         │
+│                                                          │
+│  [🌍 Overall] ← Active (Green border, bold)            │
+│  [💎 Available] ← Inactive (Blue border, lighter)      │
+└─────────────────────────────────────────────────────────┘
+
+Top 20 shows: All players (⭐ = rostered)
+```
+
+### When "Available" Mode Active
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🏆 Top 20 Most Reliable Players                         │
+│                                                          │
+│  [🌍 Overall] ← Inactive (Green border, lighter)       │
+│  [💎 Available] ← Active (Blue border, bold)           │
+└─────────────────────────────────────────────────────────┘
+
+Top 20 shows: Only available players (no stars needed)
+```
+
+---
+
+## Filter Update Logic Visual
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ FILTER CHANGE FLOWCHART                                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Change Position? ────────→ ✅ Updates Top 20                   │
+│                     └─────→ ✅ Updates Table                    │
+│                                                                  │
+│  Change Min Games? ───────→ ✅ Updates Top 20                   │
+│                     └─────→ ✅ Updates Table                    │
+│                                                                  │
+│  Change Min Points? ──────→ ✅ Updates Top 20                   │
+│                     └─────→ ✅ Updates Table                    │
+│                                                                  │
+│  Toggle Overall/Available? → ✅ Updates Top 20                   │
+│                     └─────→ ❌ Does NOT update Table            │
+│                                                                  │
+│  Type in Search? ─────────→ ❌ Does NOT update Top 20           │
+│                     └─────→ ✅ Updates Table                    │
+│                                                                  │
+│  Change Roster Status? ───→ ❌ Does NOT update Top 20           │
+│                     └─────→ ✅ Updates Table                    │
+│                                                                  │
+│  Click Reset? ────────────→ ✅ Updates Top 20 (to Overall)      │
+│                     └─────→ ✅ Updates Table (all filters)      │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Example Scenarios
+
+### Scenario 1: Finding Top Available WRs
+
+**User Actions:**
+```
+1. Click [💎 Available]
+2. Set Position: WR
+3. Set Min Games: 5+
+4. Set Min Avg Points: 8+
+```
+
+**What Updates:**
+```
+TOP 20:
+  ✅ Shows only available WRs
+  ✅ With 5+ games played
+  ✅ With 8+ PPG
+  ✅ Sorted by reliability score
+  ✅ No roster stars (all available)
+
+TABLE:
+  ✅ Shows only available WRs
+  ✅ With 5+ games
+  ✅ With 8+ PPG
+  ✅ ALL matching players (not just top 20)
+```
+
+**Visual Result:**
+```
+🏆 Top 20 = Your waiver wire priority list (WRs, 5+ games, 8+ PPG)
+📊 Table = Full list of all matching players for detailed comparison
+```
+
+---
+
+### Scenario 2: Benchmarking Your RBs
+
+**User Actions:**
+```
+1. Click [🌍 Overall]
+2. Set Position: RB
+3. Set Min Games: 7+
+```
+
+**What Updates:**
+```
+TOP 20:
+  ✅ Shows ALL RBs (yours + others)
+  ✅ With 7+ games
+  ✅ Your RBs marked with ⭐
+  ✅ Sorted by reliability
+
+TABLE:
+  ✅ Shows ALL RBs (yours + others)
+  ✅ With 7+ games
+  ✅ ALL matching players
+```
+
+**Visual Result:**
+```
+🏆 Top 20 = See where your RBs (⭐) rank vs. league's best
+📊 Table = Full RB reliability rankings for detailed analysis
+```
+
+---
+
+### Scenario 3: Quick Player Search
+
+**User Actions:**
+```
+1. Type "jordan addison" in Search box
+```
+
+**What Updates:**
+```
+TOP 20:
+  ❌ Stays the same (doesn't update)
+
+TABLE:
+  ✅ Shows only Jordan Addison
+  ✅ All his stats visible
+```
+
+**Visual Result:**
+```
+🏆 Top 20 = Benchmark (unchanged)
+📊 Table = Single player lookup
+💡 Compare Jordan Addison's reliability to Top 20 players
+```
+
+---
+
+## Screen Space Comparison
+
+### Before (Vertical Grid)
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│  Filter Row 1: [Search] [Pos] [Games]  │ ← 3 items
+│                                         │
+│  Filter Row 2: [Points] [Roster]       │ ← 2 items
+│                                         │
+│  Filter Row 3:     [Reset]             │ ← 1 item
+│                                         │
+│  Total Height: ~180px                  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+### After (Horizontal Row)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  [Search] [Pos] [Games] [Points] [Roster] [Reset]              │
+│                                                                  │
+│  Total Height: ~70px                                            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Space Saved:** ~110px (61% reduction in vertical space!)
+
+---
+
+## Mobile/Responsive Behavior
+
+### Desktop (1800px+)
+```
+Filters: Single row, all 6 items side-by-side
+Top 20: 5 cards per row
+```
+
+### Tablet (768px-1800px)
+```
+Filters: Wraps to 2 rows (3 items per row)
+Top 20: 3-4 cards per row
+```
+
+### Mobile (<768px)
+```
+Filters: Stacks vertically (1 per row)
+Top 20: 1-2 cards per row
+```
+
+---
+
+## Color Coding Reference
+
+### Toggle Buttons
+
+**Overall (Active):**
+- Background: `rgba(46,204,113,0.3)` (bright green)
+- Border: `2px solid #2ecc71` (solid green)
+- Font: Bold
+
+**Overall (Inactive):**
+- Background: `rgba(46,204,113,0.15)` (dim green)
+- Border: `2px solid rgba(46,204,113,0.5)` (faded green)
+- Font: Normal
+
+**Available (Active):**
+- Background: `rgba(52,152,219,0.3)` (bright blue)
+- Border: `2px solid #3498db` (solid blue)
+- Font: Bold
+
+**Available (Inactive):**
+- Background: `rgba(52,152,219,0.15)` (dim blue)
+- Border: `2px solid rgba(52,152,219,0.5)` (faded blue)
+- Font: Normal
+
+---
+
+## 🎯 Key Takeaways
+
+1. **Toggle buttons** at top-right switch between Overall and Available modes
+2. **Horizontal filters** save 110px of vertical space (~61% reduction)
+3. **Smart updates**: Position/Games/Points update both Top 20 and table
+4. **Isolated updates**: Search/Roster only update table (not Top 20)
+5. **Visual feedback**: Active toggle button is brighter and bold
+
+---
+
+## 🚀 The Result
+
+You now have:
+- ✅ **Adaptive Top 20** that responds to meaningful filters
+- ✅ **One-click toggle** between all players and available only
+- ✅ **Cleaner interface** with horizontal filter layout
+- ✅ **Smarter updates** (filters update what makes sense)
+- ✅ **Better UX** (less scrolling, faster decisions)
+
+**It's beautiful, it's functional, it's perfect!** 🎨✨

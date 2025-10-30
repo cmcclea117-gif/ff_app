@@ -1,0 +1,274 @@
+# 📊 Reliability Tab - Visual Preview
+
+## New Tab Layout
+
+```
+═══════════════════════════════════════════════════════════════════════════
+📊 Understanding Reliability Metrics
+
+Reliability Score (0-100): Composite metric combining accuracy, consistency, 
+and sample size. Higher is better!
+
+  • 90+: 🟢 Elite - Trust these projections
+  • 75-89: 🟡 Good - Reliable with minor variance  
+  • 60-74: 🟠 Fair - Use with caution
+  • <60: 🔴 Poor - High unpredictability
+═══════════════════════════════════════════════════════════════════════════
+
+╔═════════════════╦═════╦═══════╦════════════════╦═══════╦═══════╦═════════════╦═════════╦═══════╗
+║ Player          ║ Pos ║ Games ║ ⭐ Reliability ║  MAE  ║ Corr% ║ Consistency ║ Avg Pts ║ Bias  ║
+╠═════════════════╬═════╬═══════╬════════════════╬═══════╬═══════╬═════════════╬═════════╬═══════╣
+║ Ladd McConkey   ║ WR  ║   7   ║   🟢 97        ║  2.1  ║  93%  ║    91%      ║  14.6   ║ -2.1  ║
+║ Jake Ferguson   ║ TE  ║   6   ║   🟢 97        ║  0.8  ║  96%  ║    94%      ║  14.4   ║ -0.3  ║
+║ Breece Hall     ║ RB  ║   7   ║   🟢 94        ║  2.8  ║  89%  ║    87%      ║  16.2   ║ +0.8  ║
+║ Ja'Marr Chase   ║ WR  ║   6   ║   🟢 92        ║  3.1  ║  88%  ║    85%      ║  18.4   ║ -1.2  ║
+║ Jordan Addison  ║ WR  ║   6   ║   🟡 86        ║  4.2  ║  81%  ║    78%      ║  13.2   ║ +1.8  ║
+║ Travis Etienne  ║ RB  ║   7   ║   🟡 83        ║  5.1  ║  77%  ║    74%      ║  14.8   ║ +2.4  ║
+║ George Kittle   ║ TE  ║   6   ║   🟡 79        ║  6.3  ║  71%  ║    69%      ║  12.3   ║ +3.1  ║
+║ Rashid Shaheed  ║ WR  ║   5   ║   🟡 76        ║  7.1  ║  68%  ║    66%      ║  11.4   ║ -4.2  ║
+║ Terry McLaurin  ║ WR  ║   6   ║   🟠 68        ║  8.2  ║  54%  ║    62%      ║  12.1   ║ +3.4  ║
+║ Tyler Lockett   ║ WR  ║   5   ║   🟠 64        ║  9.4  ║  48%  ║    58%      ║  10.2   ║ +5.8  ║
+║ Gus Edwards     ║ RB  ║   4   ║   🟠 61        ║ 10.1  ║  43%  ║    51%      ║   8.7   ║ +7.2  ║
+║ K.J. Osborn     ║ WR  ║   5   ║   🔴 58        ║ 11.2  ║  39%  ║    47%      ║   9.1   ║ +8.4  ║
+║ J.Smith-Njigba  ║ WR  ║   6   ║   🔴 52        ║ 12.8  ║  32%  ║    42%      ║  10.8   ║ +9.1  ║
+║ Raheem Mostert  ║ RB  ║   4   ║   🔴 48        ║ 13.7  ║  28%  ║    39%      ║   8.3   ║+11.2  ║
+║ Evan Engram     ║ TE  ║   5   ║   🔴 44        ║ 14.3  ║  21%  ║    38%      ║   9.8   ║+12.1  ║
+╚═════════════════╩═════╩═══════╩════════════════╩═══════╩═══════╩═════════════╩═════════╩═══════╝
+```
+
+---
+
+## 🔍 Reading the Table
+
+### Color Zones
+
+**🟢 Elite Tier (97-94)**
+- **Ladd McConkey:** Near-perfect projections, only 2.1 ranks off on average
+- **Jake Ferguson:** Even better at 0.8 MAE, incredibly consistent
+- **Breece Hall:** Bell cow RB, predictable usage = reliable projections
+- **Ja'Marr Chase:** Elite WR1, experts nail him weekly
+
+**🟡 Good Tier (86-76)**
+- **Jordan Addison:** Solid but some variance week-to-week
+- **Travis Etienne:** Committee concerns create small errors
+- **George Kittle:** TEs are harder to project, still pretty good
+- **Rashid Shaheed:** Big plays mean some boom/bust, but trending right direction
+
+**🟠 Fair Tier (68-61)**
+- **Terry McLaurin:** Mediocre QB play = unpredictable game scripts
+- **Tyler Lockett:** Secondary WR role = target variance
+- **Gus Edwards:** Committee back, experts struggle to project touches
+
+**🔴 Poor Tier (58-44)**
+- **K.J. Osborn:** Deep on depth chart, usage too inconsistent
+- **Jaxon Smith-Njigba:** Rookie, experts still learning his role
+- **Raheem Mostert:** Three-way committee = projection nightmare
+- **Evan Engram:** Most unreliable TE, 14+ rank error on average
+
+---
+
+## 📊 Column Explanations
+
+### ⭐ Reliability (Primary Metric)
+- **What it is:** Your "confidence score" (0-100)
+- **How to use:** Higher = trust the projection more
+- **Threshold:** 85+ for must-trusts, 60- for don't trusts
+
+### MAE (Mean Absolute Error)
+- **What it is:** Average rank difference between projected and actual
+- **How to read:** Lower is better
+  - 0-3 = Elite accuracy
+  - 4-7 = Good accuracy  
+  - 8-12 = Fair accuracy
+  - 13+ = Poor accuracy
+- **Example:** MAE of 5.0 means player finishes ~5 ranks different than projected
+
+### Corr% (Correlation)
+- **What it is:** How well projections move with results (0-100%)
+- **How to read:** Higher is better
+  - 85%+ = Very strong relationship
+  - 70-84% = Good relationship
+  - 50-69% = Weak relationship
+  - <50% = Poor/no relationship
+- **Example:** 90% correlation = when projection goes up, actual result usually goes up
+
+### Consistency
+- **What it is:** How predictable the errors are (0-100%)
+- **How to read:** Higher is better
+  - 85%+ = Very consistent errors
+  - 70-84% = Moderately consistent
+  - 50-69% = Somewhat erratic
+  - <50% = Wildly unpredictable
+- **Example:** 90% consistency = errors are usually similar size (predictable variance)
+
+### Bias
+- **What it is:** Average rank difference (positive = overranked, negative = underranked)
+- **How to read:**
+  - Negative (-) = Player beats projections (📈 good!)
+  - Near 0 = Unbiased projections
+  - Positive (+) = Player misses projections (📉 bad)
+- **Example:** -2.1 bias = player typically finishes ~2 ranks better than projected
+
+---
+
+## 🎯 Decision Examples
+
+### Example 1: Start/Sit Between Two WRs
+
+**Scenario:** Jordan Addison (WR, projected 13.2) vs Terry McLaurin (WR, projected 13.8)
+
+**Analysis:**
+```
+Jordan Addison:  🟡 86 reliability, 4.2 MAE
+Terry McLaurin:  🟠 68 reliability, 8.2 MAE
+```
+
+**Decision:** **Start Jordan Addison**
+- His reliability is 18 points higher (86 vs 68)
+- His MAE is half of McLaurin's (4.2 vs 8.2)
+- Even though McLaurin is projected 0.6 points higher, Addison's projection is more trustworthy
+- Real outcome is more likely to favor Addison
+
+---
+
+### Example 2: Trade Target Selection
+
+**Scenario:** You want to trade for a consistent TE. Options are Jake Ferguson and Evan Engram.
+
+**Analysis:**
+```
+Jake Ferguson:  🟢 97 reliability, 0.8 MAE, -0.3 bias
+Evan Engram:    🔴 44 reliability, 14.3 MAE, +12.1 bias
+```
+
+**Decision:** **Target Jake Ferguson**
+- Elite reliability (97) vs terrible (44)
+- Near-perfect accuracy (0.8 MAE) vs awful (14.3 MAE)
+- Slightly beats projections (-0.3) vs massively underperforms (+12.1)
+- You know exactly what you're getting with Ferguson
+- Engram is a weekly guessing game
+
+---
+
+### Example 3: GPP Tournament Contrarian Play
+
+**Scenario:** You want a high-upside, low-owned play for GPP. Looking at similar-priced RBs.
+
+**Analysis:**
+```
+Travis Etienne:   🟡 83 reliability, 14.8 avg pts, +2.4 bias (chalk play)
+Raheem Mostert:   🔴 48 reliability, 8.3 avg pts, +11.2 bias (contrarian)
+```
+
+**Decision:** **Use Mostert as leverage**
+- Much lower reliability = experts don't know how to rank him
+- Massive positive bias (+11.2) = consistently overrated
+- BUT: This means when he hits, he'll massively outperform ownership
+- High variance = perfect for GPP tournament
+- Etienne is "safer" but won't give you unique leverage
+
+---
+
+### Example 4: Cash Game vs GPP Strategy
+
+**Cash Games (need floor):**
+```
+Target: 🟢 Elite Tier (90+)
+Examples:
+  • Ladd McConkey (97)
+  • Jake Ferguson (97)
+  • Breece Hall (94)
+
+Strategy: Stack your lineup with high-reliability players
+Goal: Minimize variance, maximize consistent scoring
+```
+
+**GPP Tournaments (need ceiling):**
+```
+Core: 🟢 Elite Tier (90+) for stability
+Leverage: 🟠🔴 Fair/Poor Tier (50-70) for upside
+Examples:
+  • Core: Ja'Marr Chase (92)
+  • Leverage: J.Smith-Njigba (52)
+  • Leverage: K.J. Osborn (58)
+
+Strategy: Stable core + volatile leverage plays
+Goal: Unique lineup construction, differentiated scoring
+```
+
+---
+
+## 🎨 Sorting Examples
+
+### Sort by Reliability (Default)
+```
+Click "⭐ Reliability" header → Highest reliability first
+Use case: Find the most trustworthy projections
+Perfect for: Start/sit decisions, cash game builds
+```
+
+### Sort by MAE
+```
+Click "MAE" header → Lowest error first (auto-inverted)
+Use case: Find the most accurate projections
+Perfect for: When you want raw accuracy over composite score
+```
+
+### Sort by Bias
+```
+Click "Bias" header → Most negative first
+Use case: Find undervalued players who beat projections
+Perfect for: Identifying draft steals, buy-low trade targets
+```
+
+### Sort by Avg Pts
+```
+Click "Avg Pts" header → Highest scoring first
+Use case: Find high-volume players
+Perfect for: When volume matters more than projection accuracy
+```
+
+---
+
+## 💡 Advanced Tips
+
+### Reliability + Bias Strategy
+```
+🎯 Target: High Reliability + Negative Bias
+Example: Ladd McConkey (97 reliability, -2.1 bias)
+Meaning: Experts are accurate BUT consistently underrate him
+Action: Start with confidence, possible draft steal next year
+```
+
+### Consistency Analysis
+```
+🎯 Look for: Low Consistency + High Avg Pts
+Example: (hypothetical) Player X - 65 consistency, 15.0 avg pts
+Meaning: High scorer but wildly unpredictable week-to-week
+Action: Perfect GPP leverage, avoid in cash games
+```
+
+### Sample Size Warning
+```
+⚠️ Warning: Games < 5
+Reliability scores are less stable with limited data
+Action: Wait 2-3 more weeks before fully trusting the score
+```
+
+---
+
+## 🎬 Bottom Line
+
+The new Reliability tab gives you:
+
+1. **One number to rule them all** → ⭐ Reliability Score
+2. **Color-coded confidence** → 🟢🟡🟠🔴 at-a-glance
+3. **Sortable columns** → Find exactly what you need
+4. **Context metrics** → MAE, Correlation, Consistency, Bias
+5. **Actionable insights** → Know who to trust and who to fade
+
+It's your **projection confidence dashboard** - use it to make smarter decisions every week! 🚀
+
+---
+
+**Next:** Run the updated script and explore the new Reliability tab!

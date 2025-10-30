@@ -1,0 +1,35 @@
+========================================================================================================================
+UPDATED PROJECTIONS TABLE - EXAMPLES
+========================================================================================================================
+Player                    Pos  Rank   Proj     Floor-Ceil      Tier     Rating   Trend        Notes                         
+------------------------------------------------------------------------------------------------------------------------
+Puka Nacua                WR   3      21.8     16.9 - 20.7     Elite    50       📉 +5.2       High accuracy, but overestimated
+Justin Herbert            QB   5      21.4     21.3 - 23.6     Elite    -        ➡️ 0.0       New starter - no historical data
+Michael Pittman Jr.       WR   9      16.2     14.0 - 20.5     Elite    -        ➡️ 0.0       Insufficient games (<5)       
+Ladd McConkey             WR   18     14.6     14.2 - 20.1     High     97       📈 -2.1       Excellent accuracy, slightly underestimated
+Jake Ferguson             TE   3      14.4     8.1 - 17.7      Elite    97       📈 -0.3       Nearly perfect projections    
+Ashton Jeanty             RB   12     14.4     12.3 - 19.4     High     14       📉 +25.0      Poor accuracy, heavily overestimated
+Chris Olave 🚫 BYE         WR   999    -        -               BYE      95       📈 -1.5       On bye week but still shows historical stats
+
+========================================================================================================================
+KEY CHANGES
+========================================================================================================================
+✅ NEW: Rating column (0-100 power curve score)
+✅ UPDATED: Trend shows emoji + numeric value
+✅ NEW: Bye week players included with 🚫 BYE label
+✅ REMOVED: FP Acc column (replaced with better Rating metric)
+
+========================================================================================================================
+RATING COLOR CODING
+========================================================================================================================
+🟢 90-100: Elite accuracy (trust projections)
+🟡 75-89:  Good accuracy (reasonable guidance)
+🔴 <75:    Poor accuracy (high variance)
+⚪ -:      Not enough data (<5 games)
+
+========================================================================================================================
+TREND INTERPRETATION
+========================================================================================================================
+📈 Negative: Beats projections consistently (undervalued)
+➡️ Near 0:   Unbiased projections (most reliable)
+📉 Positive: Misses projections consistently (overvalued)

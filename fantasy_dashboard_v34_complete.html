@@ -568,8 +568,8 @@ tbody tr:hover {
               <th>Week 9 Proj</th>
               <th>Floor-Ceiling</th>
               <th>Tier</th>
-              <th>FP Acc</th>
-              <th>Trend</th>
+              <th title="Rating score (0-100) based on prediction accuracy">Rating</th>
+              <th title="Trend: Negative (📈) = beats projections, Positive (📉) = misses projections">Trend</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -579,18 +579,101 @@ tbody tr:hover {
     
     <!-- Reliability Tab -->
     <div id="reliability" class="tab-content">
+      <!-- Top 20 Most Reliable Players -->
+      <div id="top20Container" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, rgba(46,204,113,0.1) 0%, rgba(52,152,219,0.1) 100%); border-radius: 15px; border: 2px solid rgba(46,204,113,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0; font-size: 1.3em;">🏆 Top 20 Most Reliable Players</h3>
+          <div style="display: flex; gap: 10px;">
+            <button id="top20Overall" onclick="setTop20Mode('overall')" style="padding: 8px 16px; background: rgba(46,204,113,0.3); border: 2px solid #2ecc71; border-radius: 5px; color: #ecf0f1; cursor: pointer; font-weight: bold; font-size: 0.9em;">
+              🌍 Overall
+            </button>
+            <button id="top20Available" onclick="setTop20Mode('available')" style="padding: 8px 16px; background: rgba(52,152,219,0.15); border: 2px solid rgba(52,152,219,0.5); border-radius: 5px; color: #ecf0f1; cursor: pointer; font-size: 0.9em;">
+              💎 Available
+            </button>
+          </div>
+        </div>
+        <div id="top20Grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;"></div>
+      </div>
+      
+      <div class="filters" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+        <h3 style="margin-bottom: 10px; font-size: 1.1em;">📊 Understanding Reliability Metrics</h3>
+        <p style="margin-bottom: 10px; color: #bdc3c7;"><strong>Reliability Score (0-100):</strong> Composite metric combining accuracy, consistency, and sample size. Higher is better!</p>
+        <ul style="color: #bdc3c7; margin-left: 20px; line-height: 1.6;">
+          <li><strong>90+:</strong> 🟢 Elite - Trust these projections</li>
+          <li><strong>75-89:</strong> 🟡 Good - Reliable with minor variance</li>
+          <li><strong>60-74:</strong> 🟠 Fair - Use with caution</li>
+          <li><strong>&lt;60:</strong> 🔴 Poor - High unpredictability</li>
+        </ul>
+      </div>
+      
+      <!-- Filters Section - Horizontal Layout -->
+      <div class="filters" style="margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.08); border-radius: 10px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
+          <div class="filter-group" style="flex: 1; min-width: 180px;">
+            <label>🔍 Search Player:</label>
+            <input type="text" id="reliabilitySearch" placeholder="Type name..." oninput="renderReliabilityTable()" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #ecf0f1;">
+          </div>
+          
+          <div class="filter-group" style="flex: 0 0 140px;">
+            <label>📍 Position:</label>
+            <select id="reliabilityPosFilter" onchange="updateReliabilityWithFilters()" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #ecf0f1;">
+              <option value="ALL">All Positions</option>
+              <option value="QB">QB</option>
+              <option value="RB">RB</option>
+              <option value="WR">WR</option>
+              <option value="TE">TE</option>
+            </select>
+          </div>
+          
+          <div class="filter-group" style="flex: 0 0 120px;">
+            <label>🎮 Min Games:</label>
+            <select id="reliabilityGamesFilter" onchange="updateReliabilityWithFilters()" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #ecf0f1;">
+              <option value="3">3+ Games</option>
+              <option value="5">5+ Games</option>
+              <option value="7">7+ Games</option>
+            </select>
+          </div>
+          
+          <div class="filter-group" style="flex: 0 0 130px;">
+            <label>⚡ Min Avg Points:</label>
+            <select id="reliabilityPointsFilter" onchange="updateReliabilityWithFilters()" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #ecf0f1;">
+              <option value="0">All Players</option>
+              <option value="5">5+ PPG</option>
+              <option value="8">8+ PPG</option>
+              <option value="10">10+ PPG</option>
+              <option value="12">12+ PPG</option>
+              <option value="15">15+ PPG</option>
+            </select>
+          </div>
+          
+          <div class="filter-group" style="flex: 0 0 140px;">
+            <label>👥 Roster Status:</label>
+            <select id="reliabilityRosterFilter" onchange="renderReliabilityTable()" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #ecf0f1;">
+              <option value="ALL">All Players</option>
+              <option value="ROSTERED">Rostered Only</option>
+              <option value="AVAILABLE">Available Only</option>
+            </select>
+          </div>
+          
+          <button onclick="resetReliabilityFilters()" style="flex: 0 0 auto; padding: 8px 16px; background: rgba(231,76,60,0.2); border: 1px solid #e74c3c; border-radius: 5px; color: #ecf0f1; cursor: pointer; font-size: 0.9em; height: 38px;">
+            🔄 Reset
+          </button>
+        </div>
+      </div>
+      
       <div class="table-container">
         <table id="reliabilityTable">
           <thead>
             <tr>
-              <th class="sortable" onclick="sortReliability('player')">Player</th>
-              <th class="sortable" onclick="sortReliability('pos')">Pos</th>
+              <th class="sortable" onclick="sortReliability('name')">Player</th>
+              <th class="sortable" onclick="sortReliability('position')">Pos</th>
               <th class="sortable" onclick="sortReliability('games')">Games</th>
-              <th class="sortable" onclick="sortReliability('correlation')">FP Accuracy</th>
-              <th class="sortable" onclick="sortReliability('mae')">MAE</th>
-              <th class="sortable" onclick="sortReliability('accuracy')">Within 3 Ranks %</th>
-              <th class="sortable" onclick="sortReliability('avgScore')">Avg Score</th>
-              <th class="sortable" onclick="sortReliability('avgDiff')">Avg Diff</th>
+              <th class="sortable" onclick="sortReliability('reliabilityScore')" title="Composite score (0-100): Combines MAE, correlation, consistency, and sample size">⭐ Reliability</th>
+              <th class="sortable" onclick="sortReliability('mae')" title="Mean Absolute Error: Average rank difference between projected and actual">MAE</th>
+              <th class="sortable" onclick="sortReliability('correlation')" title="Correlation between projections and results">Corr %</th>
+              <th class="sortable" onclick="sortReliability('consistency')" title="How consistent the projection errors are">Consistency</th>
+              <th class="sortable" onclick="sortReliability('avgScore')">Avg Pts</th>
+              <th class="sortable" onclick="sortReliability('avgDiff')" title="Average bias: Negative means player beats projections">Bias</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -1086,7 +1169,7 @@ function pearsonCorrelation(x, y) {
 
 let sortState = {
   projections: { column: 'proj', direction: 'desc' },
-  reliability: { column: 'correlation', direction: 'desc' },
+  reliability: { column: 'reliabilityScore', direction: 'desc' },  // ✅ Changed from 'correlation' to 'reliabilityScore'
   rankings: { column: 'rank', direction: 'asc' },
   waiver: { column: 'proj', direction: 'desc' },
   matchups: { column: 'proj', direction: 'desc' },
@@ -1181,10 +1264,10 @@ function applySorting(data, tableId) {
     if (aVal < bVal) result = -1;
     if (aVal > bVal) result = 1;
     
-    // SPECIAL CASE: For "mae" column in historical table, invert sort
+    // SPECIAL CASE: For "mae" column, invert sort
     // because lower MAE = better = higher rating score
     // So "asc" should show LOW mae (HIGH rating) first
-    const shouldInvert = (tableId === 'historical' && state.column === 'mae');
+    const shouldInvert = ((tableId === 'historical' || tableId === 'reliability') && state.column === 'mae');
     const effectiveDirection = shouldInvert ? 
       (state.direction === 'asc' ? 'desc' : 'asc') : 
       state.direction;
@@ -1296,6 +1379,34 @@ function calculateFPAccuracy() {
       const allScores = Object.values(weeks).filter(score => score !== undefined && score > 0);
       const avgScore = allScores.length > 0 ? allScores.reduce((a, b) => a + b, 0) / allScores.length : 0;
       
+      // ✅ Calculate consistency (inverse of standard deviation of rank differences)
+      const variance = rankDiffs.reduce((sum, d) => sum + Math.pow(d - mae, 2), 0) / rankDiffs.length;
+      const stdDev = Math.sqrt(variance);
+      const consistency = Math.max(0, 1 - (stdDev / 15)); // Normalize to 0-1 (15 ranks = 0 consistency)
+      
+      // ✅ COMPOSITE RELIABILITY SCORE (0-100)
+      // Combines multiple factors weighted by importance
+      let reliabilityScore = 0;
+      
+      // 1. MAE Component (40%): Lower is better, convert to 0-100 scale
+      const maeScore = Math.max(0, 100 - (mae * 5)); // MAE of 20 ranks = 0, MAE of 0 = 100
+      reliabilityScore += maeScore * 0.40;
+      
+      // 2. Correlation Component (30%): Direct conversion to 0-100
+      const corrScore = Math.max(0, correlation * 100);
+      reliabilityScore += corrScore * 0.30;
+      
+      // 3. Consistency Component (20%): How predictable are the errors?
+      const consistencyScore = consistency * 100;
+      reliabilityScore += consistencyScore * 0.20;
+      
+      // 4. Sample Size Bonus (10%): Reward more games
+      const sampleBonus = Math.min(100, (projectedRanks.length / 8) * 100); // 8+ games = full bonus
+      reliabilityScore += sampleBonus * 0.10;
+      
+      // Cap at 100 and ensure minimum of 0
+      reliabilityScore = Math.max(0, Math.min(100, reliabilityScore));
+      
       FP_ACCURACY[name] = {
         position: pos,
         games: projectedRanks.length,
@@ -1304,11 +1415,13 @@ function calculateFPAccuracy() {
         mae: mae,
         accuracy: within3,
         avgDiff: avgDiff,
-        avgScore: avgScore  // ✅ ADD THIS
+        avgScore: avgScore,
+        consistency: consistency,
+        reliabilityScore: reliabilityScore  // ✅ NEW COMPOSITE SCORE
       };
       
       // Track position-level accuracy
-      POSITION_ACCURACY[pos].push({ correlation, mae, within3 });
+      POSITION_ACCURACY[pos].push({ correlation, mae, within3, reliabilityScore });
     }
   });
   
@@ -1319,11 +1432,13 @@ function calculateFPAccuracy() {
       const avgCorr = posData.reduce((sum, d) => sum + d.correlation, 0) / posData.length;
       const avgMAE = posData.reduce((sum, d) => sum + d.mae, 0) / posData.length;
       const avgWithin3 = posData.reduce((sum, d) => sum + d.within3, 0) / posData.length;
+      const avgReliability = posData.reduce((sum, d) => sum + d.reliabilityScore, 0) / posData.length;
       
       POSITION_ACCURACY[pos] = {
         avgCorrelation: avgCorr,
         avgMAE: avgMAE,
         avgAccuracy: avgWithin3,
+        avgReliability: avgReliability,
         playerCount: posData.length
       };
     }
@@ -1357,9 +1472,29 @@ function calculateProjections() {
     const normName = normalizePlayerName(name);
     const ecrData = nextWeekECR.find(p => normalizePlayerName(p.p) === normName);
     
-    // ⚠️ SKIP players without Week 8 ECR data (on bye, injured, etc.)
+    // Check if player is on bye (no ECR data for this week)
+    let onBye = false;
     if (!ecrData || !ecrData.ecr || ecrData.ecr <= 0) {
-      return;  // Don't include this player
+      onBye = true;
+      // Still include bye players with basic info
+      projections.push({
+        p: name,
+        pos: pos,
+        proj: 0,
+        floor: 0,
+        ceiling: 0,
+        avgScore: avgScore,
+        games: games,
+        hasECR: false,
+        ecrRank: 999,
+        correlation: FP_ACCURACY[name]?.correlation || 0,
+        mae: FP_ACCURACY[name]?.mae || 0,
+        avgDiff: FP_ACCURACY[name]?.avgDiff || 0,
+        accuracy: FP_ACCURACY[name]?.accuracy || 0,
+        onBye: true,
+        tier: 'BYE'
+      });
+      return;
     }
 
     // Player has ECR - continue with projection
@@ -1450,16 +1585,24 @@ function calculateProjections() {
       correlation: FP_ACCURACY[name]?.correlation || 0,
       mae: FP_ACCURACY[name]?.mae || 0,
       avgDiff: FP_ACCURACY[name]?.avgDiff || 0,
-      accuracy: FP_ACCURACY[name]?.accuracy || 0
+      accuracy: FP_ACCURACY[name]?.accuracy || 0,
+      onBye: false
     });
   });
   
-  // Sort by projection
+  // Sort by projection (bye weeks will be at bottom with 0 proj)
   projections.sort((a, b) => b.proj - a.proj);
   
-  // Assign ranks and tiers
+  // Assign ranks and tiers (skip bye weeks for rank counting)
   const posCounts = { QB: 0, RB: 0, WR: 0, TE: 0 };
   projections.forEach(p => {
+    // Skip bye weeks for rank assignment
+    if (p.onBye) {
+      p.rank = 999;
+      p.tier = 'BYE';
+      return;
+    }
+    
     posCounts[p.pos]++;
     p.rank = posCounts[p.pos];
     
@@ -1529,31 +1672,73 @@ function renderProjectionsTable() {
   
   const tbody = document.getElementById('projectionsTable').querySelector('tbody');
   tbody.innerHTML = filtered.map(p => {
-    const trend = p.avgDiff > 2 ? '📈' : p.avgDiff < -2 ? '📉' : '➡️';
-    const trendClass = p.avgDiff > 2 ? 'trend-up' : p.avgDiff < -2 ? 'trend-down' : 'trend-stable';
+    // Calculate rating score from MAE
+    const rating = p.mae > 0 ? Math.max(0, 100 - Math.pow(p.mae * 0.5, 1.3)) : 0;
+    const ratingClass = rating >= 90 ? 'high-acc' : rating >= 75 ? 'med-acc' : 'low-acc';
+    
+    // Trend display with value
+    const trendIcon = p.avgDiff < -2 ? '📈' : p.avgDiff > 2 ? '📉' : '➡️';
+    const trendClass = p.avgDiff < -2 ? 'trend-up' : p.avgDiff > 2 ? 'trend-down' : 'trend-stable';
+    const trendText = p.avgDiff !== 0 ? (p.avgDiff > 0 ? '+' : '') + p.avgDiff.toFixed(1) : '0.0';
+    
     const roster = isOnRoster(p.p) ? '🏠' : '';
     const rowClass = isOnRoster(p.p) ? 'my-roster' : isRostered(p.p) ? 'rostered' : '';
     
+    // Check if player is on bye (has no ECR for this week but exists in season data)
+    const byeIndicator = p.onBye ? ' 🚫 BYE' : '';
+    
     return `
       <tr class="pos-${p.pos} ${rowClass}">
-        <td>${roster} ${p.p}</td>
+        <td>${roster} ${p.p}${byeIndicator}</td>
         <td>${p.pos}</td>
         <td>${p.rank}</td>
-        <td><strong>${p.proj.toFixed(1)}</strong></td>
-        <td>${p.floor.toFixed(1)} - ${p.ceiling.toFixed(1)}</td>
+        <td><strong>${p.onBye ? '-' : p.proj.toFixed(1)}</strong></td>
+        <td>${p.onBye ? '-' : p.floor.toFixed(1) + ' - ' + p.ceiling.toFixed(1)}</td>
         <td><span class="badge ${p.tier.toLowerCase()}">${p.tier}</span></td>
-        <td>${p.accuracy ? (p.accuracy * 100).toFixed(0) + '%' : '-'}</td>
-        <td class="${trendClass}">${trend}</td>
+        <td class="${ratingClass}" title="MAE: ${p.mae.toFixed(1)} ranks">${rating > 0 ? rating.toFixed(0) : '-'}</td>
+        <td class="${trendClass}" title="Avg rank difference">${trendIcon} ${trendText}</td>
       </tr>
     `;
   }).join('');
 }
 
 function renderReliabilityTable() {
+  // Get all filter values
+  const searchTerm = (document.getElementById('reliabilitySearch')?.value || '').toLowerCase();
+  const posFilter = document.getElementById('reliabilityPosFilter')?.value || 'ALL';
+  const minGames = parseInt(document.getElementById('reliabilityGamesFilter')?.value || '3');
+  const minPoints = parseFloat(document.getElementById('reliabilityPointsFilter')?.value || '0');
+  const rosterFilter = document.getElementById('reliabilityRosterFilter')?.value || 'ALL';
+  
   let data = Object.entries(FP_ACCURACY)
-    .filter(([name, stats]) => stats.games >= 3)  // ✅ Keep your filter
+    .filter(([name, stats]) => {
+      // Filter by minimum games
+      if (stats.games < minGames) return false;
+      
+      // Get avgScore
+      const playerData = SEASON_2025.data.find(pd => pd.p === name);
+      let avgScore = 0;
+      if (playerData && playerData.w) {
+        const scores = Object.values(playerData.w);
+        avgScore = scores.reduce((a,b) => a+b, 0) / scores.length;
+      }
+      
+      // Filter by minimum points
+      if (avgScore < minPoints) return false;
+      
+      // Filter by position
+      if (posFilter !== 'ALL' && stats.position !== posFilter) return false;
+      
+      // Filter by search term
+      if (searchTerm && !name.toLowerCase().includes(searchTerm)) return false;
+      
+      // Filter by roster status
+      if (rosterFilter === 'ROSTERED' && !isRostered(name)) return false;
+      if (rosterFilter === 'AVAILABLE' && isRostered(name)) return false;
+      
+      return true;
+    })
     .map(([name, stats]) => {
-      // ✅ Keep your avgScore calculation
       const playerData = SEASON_2025.data.find(pd => pd.p === name);
       let avgScore = 0;
       if (playerData && playerData.w) {
@@ -1569,31 +1754,194 @@ function renderReliabilityTable() {
         mae: stats.mae,
         accuracy: stats.accuracy,
         avgScore: avgScore,
-        avgDiff: stats.avgDiff
+        avgDiff: stats.avgDiff,
+        consistency: stats.consistency || 0,
+        reliabilityScore: stats.reliabilityScore || 0
       };
     });
-    // ❌ REMOVE: .sort((a, b) => b.correlation - a.correlation);
   
-  // ✅ ADD: Let applySorting handle it
+  // Sort the data
   data = applySorting(data, 'reliability');
   
+  // Render the table
   const tbody = document.getElementById('reliabilityTable').querySelector('tbody');
+  
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 30px; color: #95a5a6;">No players match your filters. Try adjusting the criteria.</td></tr>';
+    return;
+  }
+  
   tbody.innerHTML = data.map(p => {
     const diffClass = p.avgDiff > 0 ? 'trend-up' : p.avgDiff < 0 ? 'trend-down' : 'trend-stable';
     
+    // Color code reliability score
+    const reliability = p.reliabilityScore;
+    let reliabilityClass = '';
+    let reliabilityIcon = '';
+    if (reliability >= 90) {
+      reliabilityClass = 'rating-elite';
+      reliabilityIcon = '🟢';
+    } else if (reliability >= 75) {
+      reliabilityClass = 'rating-good';
+      reliabilityIcon = '🟡';
+    } else if (reliability >= 60) {
+      reliabilityClass = 'rating-fair';
+      reliabilityIcon = '🟠';
+    } else {
+      reliabilityClass = 'rating-poor';
+      reliabilityIcon = '🔴';
+    }
+    
+    // Format consistency as percentage
+    const consistencyPct = (p.consistency * 100).toFixed(0);
+    
+    // Add roster indicator
+    const rosterIcon = isRostered(p.name) ? '⭐' : '';
+    
     return `
       <tr class="pos-${p.position}">
-        <td>${p.name}</td>
+        <td>${rosterIcon} ${p.name}</td>
         <td>${p.position}</td>
         <td>${p.games}</td>
-        <td><strong>${(p.correlation * 100).toFixed(0)}%</strong></td>
-        <td>${p.mae.toFixed(2)}</td>
-        <td>${(p.accuracy * 100).toFixed(0)}%</td>
+        <td class="${reliabilityClass}"><strong>${reliabilityIcon} ${reliability.toFixed(0)}</strong></td>
+        <td>${p.mae.toFixed(1)}</td>
+        <td>${(p.correlation * 100).toFixed(0)}%</td>
+        <td>${consistencyPct}%</td>
         <td>${p.avgScore.toFixed(1)}</td>
         <td class="${diffClass}">${p.avgDiff > 0 ? '+' : ''}${p.avgDiff.toFixed(1)}</td>
       </tr>
     `;
   }).join('');
+}
+
+function renderTop20Visualization() {
+  // Get filter values (only position, games, and points - NOT search or roster status)
+  const posFilter = document.getElementById('reliabilityPosFilter')?.value || 'ALL';
+  const minGames = parseInt(document.getElementById('reliabilityGamesFilter')?.value || '3');
+  const minPoints = parseFloat(document.getElementById('reliabilityPointsFilter')?.value || '0');
+  
+  // Get top 20 players based on filters and mode
+  const top20 = Object.entries(FP_ACCURACY)
+    .filter(([name, stats]) => {
+      // Apply minimum games filter
+      if (stats.games < minGames) return false;
+      
+      // Get avgScore
+      const playerData = SEASON_2025.data.find(pd => pd.p === name);
+      let avgScore = 0;
+      if (playerData && playerData.w) {
+        const scores = Object.values(playerData.w);
+        avgScore = scores.reduce((a,b) => a+b, 0) / scores.length;
+      }
+      
+      // Apply minimum points filter
+      if (avgScore < minPoints) return false;
+      
+      // Apply position filter
+      if (posFilter !== 'ALL' && stats.position !== posFilter) return false;
+      
+      // Apply roster status based on top20Mode
+      if (top20Mode === 'available' && isRostered(name)) return false;
+      
+      return true;
+    })
+    .map(([name, stats]) => {
+      const playerData = SEASON_2025.data.find(pd => pd.p === name);
+      let avgScore = 0;
+      if (playerData && playerData.w) {
+        const scores = Object.values(playerData.w);
+        avgScore = scores.reduce((a,b) => a+b, 0) / scores.length;
+      }
+      
+      return {
+        name: name,
+        position: stats.position,
+        reliabilityScore: stats.reliabilityScore || 0,
+        mae: stats.mae,
+        avgScore: avgScore
+      };
+    })
+    .sort((a, b) => b.reliabilityScore - a.reliabilityScore)
+    .slice(0, 20);
+  
+  const container = document.getElementById('top20Grid');
+  
+  if (top20.length === 0) {
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #95a5a6;">No players match the current filters. Try adjusting your criteria.</div>';
+    return;
+  }
+  
+  container.innerHTML = top20.map((p, idx) => {
+    // Color based on reliability
+    const reliability = p.reliabilityScore;
+    let bgColor = '';
+    let borderColor = '';
+    let icon = '';
+    
+    if (reliability >= 90) {
+      bgColor = 'rgba(46,204,113,0.15)';
+      borderColor = '#2ecc71';
+      icon = '🟢';
+    } else if (reliability >= 75) {
+      bgColor = 'rgba(241,196,15,0.15)';
+      borderColor = '#f1c40f';
+      icon = '🟡';
+    } else if (reliability >= 60) {
+      bgColor = 'rgba(230,126,34,0.15)';
+      borderColor = '#e67e22';
+      icon = '🟠';
+    } else {
+      bgColor = 'rgba(231,76,60,0.15)';
+      borderColor = '#e74c3c';
+      icon = '🔴';
+    }
+    
+    // Position badge color
+    const posColors = {
+      QB: '#3498db',
+      RB: '#e74c3c',
+      WR: '#9b59b6',
+      TE: '#16a085'
+    };
+    
+    const rosterIcon = isRostered(p.name) ? ' ⭐' : '';
+    
+    return `
+      <div style="
+        background: ${bgColor};
+        border: 2px solid ${borderColor};
+        border-radius: 10px;
+        padding: 12px;
+        position: relative;
+        transition: transform 0.2s;
+        cursor: pointer;
+      " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="position: absolute; top: 8px; right: 8px; font-size: 1.2em;">${icon}</div>
+        <div style="font-weight: bold; font-size: 1.1em; margin-bottom: 5px; padding-right: 25px;">#${idx + 1}${rosterIcon} ${p.name}</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="background: ${posColors[p.position] || '#7f8c8d'}; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold;">${p.position}</span>
+          <span style="font-size: 0.9em; color: #bdc3c7;">${p.avgScore.toFixed(1)} PPG</span>
+        </div>
+        <div style="font-size: 1.3em; font-weight: bold; color: ${borderColor};">${p.reliabilityScore.toFixed(0)}</div>
+        <div style="font-size: 0.8em; color: #95a5a6;">MAE: ${p.mae.toFixed(1)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function resetReliabilityFilters() {
+  document.getElementById('reliabilitySearch').value = '';
+  document.getElementById('reliabilityPosFilter').value = 'ALL';
+  document.getElementById('reliabilityGamesFilter').value = '3';
+  document.getElementById('reliabilityPointsFilter').value = '0';
+  document.getElementById('reliabilityRosterFilter').value = 'ALL';
+  
+  // Reset Top 20 mode to overall
+  setTop20Mode('overall');
+  
+  // Re-render everything
+  renderTop20Visualization();
+  renderReliabilityTable();
 }
 
 function renderRankingsTable(position) {
@@ -1975,28 +2323,46 @@ function switchTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
   document.getElementById(tabName).classList.add('active');
 }
-
 // ==================== SORTING ====================
-let sortColumn = 'correlation';
-let sortDirection = 'desc';
+let top20Mode = 'overall'; // Track whether to show overall or available players
 
-function sortReliability(column) {
-  if (sortColumn === column) {
-    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+function setTop20Mode(mode) {
+  top20Mode = mode;
+  
+  // Update button styles
+  const overallBtn = document.getElementById('top20Overall');
+  const availableBtn = document.getElementById('top20Available');
+  
+  if (mode === 'overall') {
+    overallBtn.style.background = 'rgba(46,204,113,0.3)';
+    overallBtn.style.border = '2px solid #2ecc71';
+    overallBtn.style.fontWeight = 'bold';
+    
+    availableBtn.style.background = 'rgba(52,152,219,0.15)';
+    availableBtn.style.border = '2px solid rgba(52,152,219,0.5)';
+    availableBtn.style.fontWeight = 'normal';
   } else {
-    sortColumn = column;
-    sortDirection = 'desc';
+    availableBtn.style.background = 'rgba(52,152,219,0.3)';
+    availableBtn.style.border = '2px solid #3498db';
+    availableBtn.style.fontWeight = 'bold';
+    
+    overallBtn.style.background = 'rgba(46,204,113,0.15)';
+    overallBtn.style.border = '2px solid rgba(46,204,113,0.5)';
+    overallBtn.style.fontWeight = 'normal';
   }
   
-  // Update header classes
-  document.querySelectorAll('#reliabilityTable th').forEach(th => {
-    th.classList.remove('sort-asc', 'sort-desc');
-  });
-  
-  const th = event.target;
-  th.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-  
+  // Re-render Top 20 with current filters
+  renderTop20Visualization();
+}
+
+function updateReliabilityWithFilters() {
+  // Update both Top 20 and table when position/games/points filters change
+  renderTop20Visualization();
   renderReliabilityTable();
+}
+
+function sortReliability(column) {
+  sortTable('reliability', column);
 }
 
 // ==================== INITIALIZATION ====================
