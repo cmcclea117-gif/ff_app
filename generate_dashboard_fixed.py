@@ -908,7 +908,7 @@ tbody tr:hover {{
                 <th data-column="pos" onclick="sortTable('historical', 'pos', 'string')" style="cursor: pointer;">Pos</th>
                 <th data-column="games" onclick="sortTable('historical', 'games', 'number')" style="cursor: pointer;">Games</th>
                 <th data-column="correlation" onclick="sortTable('historical', 'correlation', 'number')" style="cursor: pointer;">Correlation</th>
-                <th data-column="mae" onclick="sortTable('historical', 'mae', 'number')" style="cursor: pointer;" title="Accuracy score based on Mean Absolute Error - hover over values to see MAE">Accuracy</th>
+                <th data-column="mae" onclick="sortTable('historical', 'mae', 'number')" style="cursor: pointer;" title="Rating score (0-100) based on prediction accuracy - hover over values to see underlying MAE">Rating</th>
                 <th data-column="avgDiff" onclick="sortTable('historical', 'avgDiff', 'number')" style="cursor: pointer;" title="Negative = beats projections, Positive = misses projections">Trend</th>
                 <th data-column="avgScore" onclick="sortTable('historical', 'avgScore', 'number')" style="cursor: pointer;">Avg Score</th>
               </tr>
@@ -1375,8 +1375,16 @@ function applySorting(data, tableId) {{
     if (aVal < bVal) result = -1;
     if (aVal > bVal) result = 1;
     
+    // SPECIAL CASE: For "mae" column in historical table, invert sort
+    // because lower MAE = better = higher rating score
+    // So "asc" should show LOW mae (HIGH rating) first
+    const shouldInvert = (tableId === 'historical' && state.column === 'mae');
+    const effectiveDirection = shouldInvert ? 
+      (state.direction === 'asc' ? 'desc' : 'asc') : 
+      state.direction;
+    
     // Apply direction
-    return state.direction === 'asc' ? result : -result;
+    return effectiveDirection === 'asc' ? result : -result;
   }});
 }}
 
@@ -1977,14 +1985,14 @@ function renderHistoricalTable() {{
     else if (p.correlation >= 0.5) corrClass = 'med-acc';
     
     // Calculate accuracy score from MAE (0-100 scale)
-    // Formula: 100 / (1 + MAE)
-    // MAE of 0 = 100%, MAE of 3 = 75%, MAE of 10 = 91%, MAE of 20 = 83%
-    const accuracyScore = 100 / (1 + (p.mae || 0));
+    // Formula: max(0, 100 - (MAE × 0.5)^1.3)
+    // Power curve that rewards excellence: Best (MAE 3.6) = 98, Median (MAE 17) = 84, Worst (MAE 63) = 12
+    const accuracyScore = Math.max(0, 100 - Math.pow((p.mae || 0) * 0.5, 1.3));
     
-    // Determine accuracy class for color coding
+    // Determine accuracy class for color coding (adjusted for power curve distribution)
     let accClass = 'low-acc';
-    if (accuracyScore >= 85) accClass = 'high-acc';
-    else if (accuracyScore >= 70) accClass = 'med-acc';
+    if (accuracyScore >= 90) accClass = 'high-acc';      // Top performers (low MAE)
+    else if (accuracyScore >= 75) accClass = 'med-acc';  // Middle performers
     
     // Trend indicator (avgDiff)
     const trendIcon = p.avgDiff < -2 ? '📈' : p.avgDiff > 2 ? '📉' : '➡️';
@@ -2000,7 +2008,7 @@ function renderHistoricalTable() {{
           ${{(p.correlation * 100).toFixed(0)}}%
         </td>
         <td class="${{accClass}}" title="MAE: ${{(p.mae || 0).toFixed(1)}} ranks">
-          ${{accuracyScore.toFixed(0)}}%
+          ${{accuracyScore.toFixed(0)}}
         </td>
         <td class="${{trendClass}}" title="Avg rank difference: ${{trendText}}${{p.avgDiff.toFixed(1)}}">
           ${{trendIcon}} ${{trendText}}${{p.avgDiff.toFixed(1)}}
