@@ -270,7 +270,7 @@ h1 {{
 .control-group input:focus,
 .control-group select:focus {{
   outline: none;
-  border-color: #3498db;
+  border-color: #6fc6ab;
 }}
 
 button {{
@@ -376,7 +376,7 @@ button:active {{
   border-radius: 10px;
   padding: 15px;
   text-align: center;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid #6fc6ab;
 }}
 
 .stat-card h3 {{
@@ -388,7 +388,7 @@ button:active {{
 .stat-card .value {{
   font-size: 1.8em;
   font-weight: bold;
-  color: #3498db;
+  color: #6fc6ab;
 }}
 
 /* Filters */
@@ -445,9 +445,9 @@ button:active {{
 }}
 
 .pos-btn.active {{
-  border-color: #3498db;
+  border-color: #6fc6ab;
   background: rgba(52, 152, 219, 0.3);
-  color: #3498db;
+  color: #6fc6ab;
 }}
 
 /* Tables */
@@ -474,7 +474,7 @@ th {{
   padding: 12px;
   text-align: left;
   font-weight: 600;
-  color: #3498db;
+  color: #6fc6ab;
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
@@ -491,12 +491,12 @@ th.sortable::after {{
 
 th.sort-asc::after {{
   content: ' ↑';
-  color: #3498db;
+  color: #6fc6ab;
 }}
 
 th.sort-desc::after {{
   content: ' ↓';
-  color: #3498db;
+  color: #6fc6ab;
 }}
 
 td {{
@@ -513,10 +513,32 @@ tbody tr:hover {{
 }}
 
 /* Position Colors */
-.pos-QB {{ border-left: 4px solid #e74c3c; }}
-.pos-RB {{ border-left: 4px solid #2ecc71; }}
-.pos-WR {{ border-left: 4px solid #3498db; }}
-.pos-TE {{ border-left: 4px solid #f39c12; }}
+.pos-QB {{ border-left: 4px solid #fc8b5f; }}
+.pos-RB {{ border-left: 4px solid #abda5e; }}
+.pos-WR {{ border-left: 4px solid #8caacb; }}
+.pos-TE {{ border-left: 4px solid #e683bf; }}
+
+/* Position Badge Colors */
+.pos-badge-QB {{ 
+  background: rgba(252, 139, 95, 0.2);
+  color: #fc8b5f;
+  border: 1px solid #fc8b5f;
+}}
+.pos-badge-RB {{ 
+  background: rgba(171, 218, 94, 0.2);
+  color: #abda5e;
+  border: 1px solid #abda5e;
+}}
+.pos-badge-WR {{ 
+  background: rgba(140, 170, 203, 0.2);
+  color: #8caacb;
+  border: 1px solid #8caacb;
+}}
+.pos-badge-TE {{ 
+  background: rgba(230, 131, 191, 0.2);
+  color: #e683bf;
+  border: 1px solid #e683bf;
+}}
 
 /* Tier Badges */
 .badge {{
@@ -533,7 +555,7 @@ tbody tr:hover {{
 }}
 
 .badge.high {{
-  background: #3498db;
+  background: #6fc6ab;
   color: white;
 }}
 
@@ -594,6 +616,51 @@ tbody tr:hover {{
   padding: 15px;
 }}
 
+.starter-card.pos-QB {{
+  background: rgba(252, 139, 95, 0.15);
+  border: 2px solid #fc8b5f;
+}}
+
+.starter-card.pos-QB h4 {{
+  color: #fc8b5f;
+}}
+
+.starter-card.pos-RB {{
+  background: rgba(171, 218, 94, 0.15);
+  border: 2px solid #abda5e;
+}}
+
+.starter-card.pos-RB h4 {{
+  color: #abda5e;
+}}
+
+.starter-card.pos-WR {{
+  background: rgba(140, 170, 203, 0.15);
+  border: 2px solid #8caacb;
+}}
+
+.starter-card.pos-WR h4 {{
+  color: #8caacb;
+}}
+
+.starter-card.pos-TE {{
+  background: rgba(230, 131, 191, 0.15);
+  border: 2px solid #e683bf;
+}}
+
+.starter-card.pos-TE h4 {{
+  color: #e683bf;
+}}
+
+.starter-card.pos-FLEX {{
+  background: rgba(111, 198, 171, 0.15);
+  border: 2px solid #6fc6ab;
+}}
+
+.starter-card.pos-FLEX h4 {{
+  color: #6fc6ab;
+}}
+
 .starter-card h4 {{
   color: #2ecc71;
   margin-bottom: 10px;
@@ -626,7 +693,7 @@ tbody tr:hover {{
   padding: 10px;
   background: rgba(255,255,255,0.1);
   border-radius: 8px;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid #6fc6ab;
 }}
 
 /* Responsive */
@@ -774,14 +841,14 @@ tbody tr:hover {{
     <!-- Reliability Tab -->
     <div id="reliability" class="tab-content">
       <!-- Top 20 Most Reliable Players -->
-      <div id="top20Container" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, rgba(46,204,113,0.1) 0%, rgba(52,152,219,0.1) 100%); border-radius: 15px; border: 2px solid rgba(46,204,113,0.3);">
+      <div id="top20Container" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, rgba(46,204,113,0.1) 0%, rgba(111,198,171,0.1) 100%); border-radius: 15px; border: 2px solid rgba(46,204,113,0.3);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h3 style="margin: 0; font-size: 1.3em;">🏆 Top 20 Most Reliable Players</h3>
           <div style="display: flex; gap: 10px;">
             <button id="top20Overall" onclick="setTop20Mode('overall')" style="padding: 8px 16px; background: rgba(46,204,113,0.3); border: 2px solid #2ecc71; border-radius: 5px; color: #ecf0f1; cursor: pointer; font-weight: bold; font-size: 0.9em;">
               🌍 Overall
             </button>
-            <button id="top20Available" onclick="setTop20Mode('available')" style="padding: 8px 16px; background: rgba(52,152,219,0.15); border: 2px solid rgba(52,152,219,0.5); border-radius: 5px; color: #ecf0f1; cursor: pointer; font-size: 0.9em;">
+            <button id="top20Available" onclick="setTop20Mode('available')" style="padding: 8px 16px; background: rgba(111,198,171,0.15); border: 2px solid rgba(111,198,171,0.5); border-radius: 5px; color: #ecf0f1; cursor: pointer; font-size: 0.9em;">
               💎 Available
             </button>
           </div>
@@ -816,6 +883,7 @@ tbody tr:hover {{
               <option value="RB">RB</option>
               <option value="WR">WR</option>
               <option value="TE">TE</option>
+              <option value="FLEX">FLEX (RB/WR/TE)</option>
             </select>
           </div>
           
@@ -903,29 +971,109 @@ tbody tr:hover {{
     
     <!-- Waiver Tab -->
     <div id="waiver" class="tab-content">
-      <div class="filters">
+      <!-- Smart Filters Section -->
+      <div class="filters" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div class="filter-group">
+          <label>🔍 Search:</label>
+          <input type="text" id="waiverSearch" placeholder="Player name..." oninput="renderWaiverTable()">
+        </div>
+        
+        <div class="filter-group">
+          <label>Position:</label>
+          <select id="waiverPosFilter" onchange="renderWaiverTable()">
+            <option value="ALL">All Positions</option>
+            <option value="QB">QB</option>
+            <option value="RB">RB</option>
+            <option value="WR">WR</option>
+            <option value="TE">TE</option>
+            <option value="FLEX">FLEX (RB/WR/TE)</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Tier:</label>
+          <select id="waiverTierFilter" onchange="renderWaiverTable()">
+            <option value="ALL">All Tiers</option>
+            <option value="Elite">Elite</option>
+            <option value="High">High</option>
+            <option value="Mid">Mid</option>
+            <option value="Stream">Stream</option>
+          </select>
+        </div>
+        
         <div class="filter-group">
           <label>Min Projection:</label>
-          <input type="number" id="minProj" value="8" step="1" oninput="renderWaiverTable()">
+          <input type="number" id="minProj" value="6" step="0.5" oninput="renderWaiverTable()" style="width: 80px;">
         </div>
-        <button onclick="renderWaiverTable()">🔄 Refresh</button>
+        
+        <div class="filter-group">
+          <label>Max Results:</label>
+          <select id="waiverLimit" onchange="renderWaiverTable()">
+            <option value="20">Top 20</option>
+            <option value="30" selected>Top 30</option>
+            <option value="50">Top 50</option>
+            <option value="100">All Available</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Stats Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;">
+        <div class="stat-card" style="padding: 15px;">
+          <h4 style="margin: 0; font-size: 0.9em; color: #bdc3c7;">Available Players</h4>
+          <div id="waiverAvailableCount" style="font-size: 1.8em; font-weight: bold; color: #6fc6ab;">-</div>
+        </div>
+        <div class="stat-card" style="padding: 15px;">
+          <h4 style="margin: 0; font-size: 0.9em; color: #bdc3c7;">Top QB Available</h4>
+          <div id="waiverTopQB" style="font-size: 1.2em; font-weight: bold; color: #fc8b5f;">-</div>
+        </div>
+        <div class="stat-card" style="padding: 15px;">
+          <h4 style="margin: 0; font-size: 0.9em; color: #bdc3c7;">Top RB Available</h4>
+          <div id="waiverTopRB" style="font-size: 1.2em; font-weight: bold; color: #abda5e;">-</div>
+        </div>
+        <div class="stat-card" style="padding: 15px;">
+          <h4 style="margin: 0; font-size: 0.9em; color: #bdc3c7;">Top WR Available</h4>
+          <div id="waiverTopWR" style="font-size: 1.2em; font-weight: bold; color: #8caacb;">-</div>
+        </div>
+        <div class="stat-card" style="padding: 15px;">
+          <h4 style="margin: 0; font-size: 0.9em; color: #bdc3c7;">Top TE Available</h4>
+          <div id="waiverTopTE" style="font-size: 1.2em; font-weight: bold; color: #e683bf;">-</div>
+        </div>
       </div>
       
       <div class="table-container">
         <table id="waiverTable">
           <thead>
             <tr>
-              <th>Priority</th>
-              <th>Player</th>
-              <th>Pos</th>
-              <th>Week {nw} Proj</th>
-              <th>Tier</th>
-              <th>Trend</th>
-              <th>FP Acc</th>
+              <th onclick="sortTable('waiver', 'priority', 'number')" style="cursor: pointer;" title="Click to sort">Priority</th>
+              <th onclick="sortTable('waiver', 'player', 'string')" style="cursor: pointer;" title="Click to sort">Player</th>
+              <th onclick="sortTable('waiver', 'pos', 'string')" style="cursor: pointer;" title="Click to sort">Pos</th>
+              <th onclick="sortTable('waiver', 'rank', 'number')" style="cursor: pointer;" title="Click to sort">Rank</th>
+              <th onclick="sortTable('waiver', 'proj', 'number')" style="cursor: pointer;" title="Click to sort">Week {nw} Proj</th>
+              <th onclick="sortTable('waiver', 'range', 'number')" style="cursor: pointer;" title="Click to sort">Floor-Ceiling</th>
+              <th onclick="sortTable('waiver', 'tier', 'string')" style="cursor: pointer;" title="Click to sort">Tier</th>
+              <th onclick="sortTable('waiver', 'avgScore', 'number')" style="cursor: pointer;" title="Click to sort">Season Avg</th>
+              <th onclick="sortTable('waiver', 'reliabilityScore', 'number')" style="cursor: pointer;" title="Click to sort - Higher is better!">Reliability</th>
+              <th onclick="sortTable('waiver', 'trend', 'number')" style="cursor: pointer;" title="Click to sort">Trend</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
+      </div>
+      
+      <!-- Helper text -->
+      <div style="margin-top: 15px; padding: 15px; background: rgba(111,198,171,0.1); border-left: 3px solid #6fc6ab; border-radius: 5px;">
+        <strong>💡 Tips:</strong>
+        <ul style="margin: 10px 0 0 20px; color: #bdc3c7;">
+          <li>🔥 = Top 5 priority pickups</li>
+          <li>⭐ = High value targets</li>
+          <li>👀 = Watchlist candidates</li>
+          <li>📈 = Player consistently beats projections</li>
+          <li>📉 = Player consistently underperforms</li>
+          <li><strong>Reliability Score:</strong> 🟢 Elite (90+) | 🟡 Good (75-89) | 🟠 Fair (60-74) | 🔴 Poor (&lt;60)</li>
+          <li>Click column headers to sort</li>
+        </ul>
       </div>
     </div>
     
@@ -1219,6 +1367,11 @@ async function connectSleeperLeague() {{
       renderProjectionsTable();
     }}
     
+    // Refresh waiver table now that roster data is available
+    if (typeof renderWaiverTable === 'function') {{
+      renderWaiverTable();
+    }}
+    
     // Update metrics to show roster count
     if (typeof updateMetrics === 'function') {{
       updateMetrics();
@@ -1289,6 +1442,7 @@ function clearSleeperRoster() {{
   if (confirm('Clear your connected roster?')) {{
     localStorage.removeItem('sleeper_roster');
     USER_ROSTER = [];
+    ALL_ROSTERED.clear(); // Clear rostered players set
     ROSTER_SOURCE = 'None';
     document.getElementById('usernameSection').style.display = 'block';
     document.getElementById('leagueSection').style.display = 'none';
@@ -1297,6 +1451,11 @@ function clearSleeperRoster() {{
     
     if (typeof renderProjectionsTable === 'function') {{
       renderProjectionsTable();
+    }}
+    
+    // Refresh waiver table to show "Connect Sleeper" message
+    if (typeof renderWaiverTable === 'function') {{
+      renderWaiverTable();
     }}
   }}
 }}
@@ -1322,6 +1481,11 @@ function loadSavedSleeperRoster() {{
       if (typeof updateMetrics === 'function') {{
         updateMetrics();
       }}
+      
+      // Refresh waiver table now that roster data is available
+      if (typeof renderWaiverTable === 'function') {{
+        renderWaiverTable();
+      }}
     }}
   }} catch (e) {{
     console.warn('Could not load saved roster:', e);
@@ -1340,6 +1504,42 @@ function normalizePlayerName(name) {{
     .replace(/[^a-z0-9\s]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+}}
+
+// Convert percentile (0-1) to grade (0-100) using anchor points
+// Based on statistical best practices for skewed data
+function percentileToGrade(percentile) {{
+  // Anchor points (percentile → grade)
+  // 0th percentile (worst) → 10
+  // 25th percentile → 43
+  // 50th percentile (median) → 75
+  // 75th percentile → 87
+  // 100th percentile (best) → 100
+  
+  const anchors = [
+    {{ p: 0.00, g: 10 }},
+    {{ p: 0.25, g: 43 }},
+    {{ p: 0.50, g: 75 }},
+    {{ p: 0.75, g: 87 }},
+    {{ p: 1.00, g: 100 }}
+  ];
+  
+  // Find the two anchor points to interpolate between
+  for (let i = 0; i < anchors.length - 1; i++) {{
+    if (percentile >= anchors[i].p && percentile <= anchors[i + 1].p) {{
+      const p1 = anchors[i].p;
+      const p2 = anchors[i + 1].p;
+      const g1 = anchors[i].g;
+      const g2 = anchors[i + 1].g;
+      
+      // Linear interpolation
+      const t = (percentile - p1) / (p2 - p1);
+      return g1 + t * (g2 - g1);
+    }}
+  }}
+  
+  // Fallback (shouldn't happen)
+  return percentile * 100;
 }}
 
 function pearsonCorrelation(x, y) {{
@@ -1578,29 +1778,7 @@ function calculateFPAccuracy() {{
       const stdDev = Math.sqrt(variance);
       const consistency = Math.max(0, 1 - (stdDev / 15)); // Normalize to 0-1 (15 ranks = 0 consistency)
       
-      // ✅ COMPOSITE RELIABILITY SCORE (0-100)
-      // Combines multiple factors weighted by importance
-      let reliabilityScore = 0;
-      
-      // 1. MAE Component (40%): Lower is better, convert to 0-100 scale
-      const maeScore = Math.max(0, 100 - (mae * 5)); // MAE of 20 ranks = 0, MAE of 0 = 100
-      reliabilityScore += maeScore * 0.40;
-      
-      // 2. Correlation Component (30%): Direct conversion to 0-100
-      const corrScore = Math.max(0, correlation * 100);
-      reliabilityScore += corrScore * 0.30;
-      
-      // 3. Consistency Component (20%): How predictable are the errors?
-      const consistencyScore = consistency * 100;
-      reliabilityScore += consistencyScore * 0.20;
-      
-      // 4. Sample Size Bonus (10%): Reward more games
-      const sampleBonus = Math.min(100, (projectedRanks.length / 8) * 100); // 8+ games = full bonus
-      reliabilityScore += sampleBonus * 0.10;
-      
-      // Cap at 100 and ensure minimum of 0
-      reliabilityScore = Math.max(0, Math.min(100, reliabilityScore));
-      
+      // Store raw metrics for later percentile calculation
       FP_ACCURACY[name] = {{
         position: pos,
         games: projectedRanks.length,
@@ -1611,12 +1789,65 @@ function calculateFPAccuracy() {{
         avgDiff: avgDiff,
         avgScore: avgScore,
         consistency: consistency,
-        reliabilityScore: reliabilityScore  // ✅ NEW COMPOSITE SCORE
+        reliabilityScore: 0  // Will be calculated after all players processed
       }};
       
       // Track position-level accuracy
-      POSITION_ACCURACY[pos].push({{ correlation, mae, within3, reliabilityScore }});
+      POSITION_ACCURACY[pos].push({{ correlation, mae, within3, consistency }});
     }}
+  }});
+  
+  // ✅ SECOND PASS: Calculate percentile-based reliability scores
+  // Group players by position for percentile calculation
+  const playersByPosition = {{ QB: [], RB: [], WR: [], TE: [] }};
+  
+  Object.entries(FP_ACCURACY).forEach(([name, stats]) => {{
+    if (stats.position && playersByPosition[stats.position]) {{
+      playersByPosition[stats.position].push({{ name, ...stats }});
+    }}
+  }});
+  
+  // Calculate percentile-based grades for each position separately
+  ['QB', 'RB', 'WR', 'TE'].forEach(pos => {{
+    const players = playersByPosition[pos];
+    if (players.length === 0) return;
+    
+    // Extract and sort metrics for percentile calculation
+    const maes = players.map(p => p.mae).sort((a, b) => a - b); // Lower is better
+    const correlations = players.map(p => p.correlation).sort((a, b) => b - a); // Higher is better
+    const consistencies = players.map(p => p.consistency).sort((a, b) => b - a); // Higher is better
+    
+    // Calculate percentile ranks and convert to grades for each player
+    players.forEach(player => {{
+      // MAE Grade: Lower MAE = Higher Grade (inverted percentile)
+      const maeRank = maes.indexOf(player.mae);
+      const maePercentile = (maes.length - 1 - maeRank) / (maes.length - 1); // Inverted
+      const maeGrade = percentileToGrade(maePercentile);
+      
+      // Correlation Grade: Higher correlation = Higher Grade
+      const corrRank = correlations.indexOf(player.correlation);
+      const corrPercentile = (correlations.length - 1 - corrRank) / (correlations.length - 1);
+      const corrGrade = percentileToGrade(corrPercentile);
+      
+      // Consistency Grade: Higher consistency = Higher Grade
+      const consRank = consistencies.indexOf(player.consistency);
+      const consPercentile = (consistencies.length - 1 - consRank) / (consistencies.length - 1);
+      const consGrade = percentileToGrade(consPercentile);
+      
+      // Sample Size Bonus (same as before)
+      const sampleBonus = Math.min(100, (player.games / 8) * 100);
+      
+      // Weighted Composite Score
+      const reliabilityScore = (
+        maeGrade * 0.40 +
+        corrGrade * 0.30 +
+        consGrade * 0.20 +
+        sampleBonus * 0.10
+      );
+      
+      // Update the player's reliability score
+      FP_ACCURACY[player.name].reliabilityScore = Math.max(0, Math.min(100, reliabilityScore));
+    }});
   }});
   
   // Calculate average accuracy by position
@@ -1626,7 +1857,11 @@ function calculateFPAccuracy() {{
       const avgCorr = posData.reduce((sum, d) => sum + d.correlation, 0) / posData.length;
       const avgMAE = posData.reduce((sum, d) => sum + d.mae, 0) / posData.length;
       const avgWithin3 = posData.reduce((sum, d) => sum + d.within3, 0) / posData.length;
-      const avgReliability = posData.reduce((sum, d) => sum + d.reliabilityScore, 0) / posData.length;
+      
+      // Calculate average reliability from updated scores
+      const players = playersByPosition[pos];
+      const avgReliability = players.length > 0 ? 
+        players.reduce((sum, p) => sum + (FP_ACCURACY[p.name]?.reliabilityScore || 0), 0) / players.length : 0;
       
       POSITION_ACCURACY[pos] = {{
         avgCorrelation: avgCorr,
@@ -1921,7 +2156,12 @@ function renderReliabilityTable() {{
       if (avgScore < minPoints) return false;
       
       // Filter by position
-      if (posFilter !== 'ALL' && stats.position !== posFilter) return false;
+      if (posFilter === 'FLEX') {{
+        // FLEX includes RB, WR, TE (not QB)
+        if (!['RB', 'WR', 'TE'].includes(stats.position)) return false;
+      }} else if (posFilter !== 'ALL' && stats.position !== posFilter) {{
+        return false;
+      }}
       
       // Filter by search term
       if (searchTerm && !name.toLowerCase().includes(searchTerm)) return false;
@@ -2032,7 +2272,12 @@ function renderTop20Visualization() {{
       if (avgScore < minPoints) return false;
       
       // Apply position filter
-      if (posFilter !== 'ALL' && stats.position !== posFilter) return false;
+      if (posFilter === 'FLEX') {{
+        // FLEX includes RB, WR, TE (not QB)
+        if (!['RB', 'WR', 'TE'].includes(stats.position)) return false;
+      }} else if (posFilter !== 'ALL' && stats.position !== posFilter) {{
+        return false;
+      }}
       
       // Apply roster status based on top20Mode
       if (top20Mode === 'available' && isRostered(name)) return false;
@@ -2092,10 +2337,10 @@ function renderTop20Visualization() {{
     
     // Position badge color
     const posColors = {{
-      QB: '#3498db',
-      RB: '#e74c3c',
-      WR: '#9b59b6',
-      TE: '#16a085'
+      QB: '#fc8b5f',
+      RB: '#abda5e',
+      WR: '#8caacb',
+      TE: '#e683bf'
     }};
     
     const rosterIcon = isRostered(p.name) ? ' ⭐' : '';
@@ -2173,36 +2418,175 @@ function renderRankingsTable(position) {{
 }}
 
 function renderWaiverTable() {{
-  const minProj = parseFloat(document.getElementById('minProj').value) || 0;
+  const tbody = document.getElementById('waiverTable').querySelector('tbody');
   
-  let available = PROJECTIONS  // ✅ CHANGE const TO let
-    .filter(p => !isRostered(p.p) && p.proj >= minProj)
-    // ❌ REMOVE: .sort((a, b) => b.proj - a.proj)
-    .slice(0, 50);  // Keep your 30 limit
+  // Check if roster data is available
+  if (ALL_ROSTERED.size === 0) {{
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" style="text-align: center; padding: 40px;">
+          <div style="background: rgba(231,76,60,0.1); border: 2px solid #e74c3c; border-radius: 10px; padding: 30px; max-width: 600px; margin: 0 auto;">
+            <div style="font-size: 2em; margin-bottom: 15px;">⚠️</div>
+            <h3 style="margin-bottom: 15px; color: #e74c3c;">No Roster Data Available</h3>
+            <p style="color: #bdc3c7; margin-bottom: 20px;">
+              To see waiver targets, you need to connect to Sleeper so we can filter out rostered players.
+            </p>
+            <button onclick="document.getElementById('connectBtn').click()" style="padding: 12px 24px; background: #27ae60; border: none; border-radius: 8px; color: white; font-size: 1.1em; cursor: pointer; font-weight: bold;">
+              📱 Connect to Sleeper
+            </button>
+            <p style="margin-top: 15px; font-size: 0.9em; color: #7f8c8d;">
+              Without roster data, this tab would show all players (including rostered ones), which isn't useful for waivers.
+            </p>
+          </div>
+        </td>
+      </tr>
+    `;
+    
+    // Clear summary stats
+    document.getElementById('waiverAvailableCount').textContent = '-';
+    document.getElementById('waiverTopQB').textContent = 'Connect Sleeper';
+    document.getElementById('waiverTopRB').textContent = 'Connect Sleeper';
+    document.getElementById('waiverTopWR').textContent = 'Connect Sleeper';
+    document.getElementById('waiverTopTE').textContent = 'Connect Sleeper';
+    return;
+  }}
   
-  // ✅ ADD THIS
+  // Get all filter values
+  const searchTerm = (document.getElementById('waiverSearch')?.value || '').toLowerCase();
+  const posFilter = document.getElementById('waiverPosFilter')?.value || 'ALL';
+  const tierFilter = document.getElementById('waiverTierFilter')?.value || 'ALL';
+  const minProj = parseFloat(document.getElementById('minProj')?.value || 0);
+  const limit = parseInt(document.getElementById('waiverLimit')?.value || 30);
+  
+  // Filter available players
+  let available = PROJECTIONS.filter(p => {{
+    // Must not be rostered
+    if (isRostered(p.p)) return false;
+    
+    // Search filter
+    if (searchTerm && !p.p.toLowerCase().includes(searchTerm)) return false;
+    
+    // Position filter
+    if (posFilter === 'FLEX') {{
+      if (!['RB', 'WR', 'TE'].includes(p.pos)) return false;
+    }} else if (posFilter !== 'ALL' && p.pos !== posFilter) {{
+      return false;
+    }}
+    
+    // Tier filter
+    if (tierFilter !== 'ALL' && p.tier !== tierFilter) return false;
+    
+    // Projection minimum
+    if (p.proj < minProj) return false;
+    
+    return true;
+  }});
+  
+  // Apply sorting
   available = applySorting(available, 'waiver');
   
-  const tbody = document.getElementById('waiverTable').querySelector('tbody');
-  tbody.innerHTML = available.map((p, idx) => {{
-    // ✅ KEEP YOUR EMOJI LOGIC - it works after sorting!
+  // Limit results
+  const limitedResults = available.slice(0, limit);
+  
+  // Update summary stats
+  updateWaiverStats(available);
+  
+  // Render the table (tbody already declared at top of function)
+  if (limitedResults.length === 0) {{
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" style="text-align: center; padding: 40px; color: #95a5a6;">
+          <div style="font-size: 1.2em; margin-bottom: 10px;">No players found</div>
+          <div>Try adjusting your filters or lowering the minimum projection</div>
+        </td>
+      </tr>
+    `;
+    return;
+  }}
+  
+  tbody.innerHTML = limitedResults.map((p, idx) => {{
+    // Priority indicator
     const priority = idx < 5 ? '🔥' : idx < 15 ? '⭐' : '👀';
     const priorityClass = idx < 5 ? 'priority-hot' : idx < 15 ? 'priority-star' : 'priority-watch';
-    const trend = p.avgDiff > 2 ? '📈' : p.avgDiff < -2 ? '📉' : '➡️';
-    const trendClass = p.avgDiff > 2 ? 'trend-up' : p.avgDiff < -2 ? 'trend-down' : 'trend-stable';
+    
+    // Trend analysis
+    const trendIcon = p.avgDiff < -2 ? '📈' : p.avgDiff > 2 ? '📉' : '➡️';
+    const trendClass = p.avgDiff < -2 ? 'trend-up' : p.avgDiff > 2 ? 'trend-down' : 'trend-stable';
+    const trendValue = p.avgDiff !== 0 ? (p.avgDiff > 0 ? '+' : '') + p.avgDiff.toFixed(1) : '0.0';
+    
+    // Reliability Score - get from FP_ACCURACY
+    let reliabilityDisplay = '-';
+    let reliabilityClass = '';
+    let reliabilityIcon = '';
+    const accuracyData = FP_ACCURACY[p.p];
+    if (accuracyData && accuracyData.reliabilityScore !== undefined) {{
+      const reliability = accuracyData.reliabilityScore;
+      reliabilityDisplay = reliability.toFixed(0);
+      
+      // Color code based on score
+      if (reliability >= 90) {{
+        reliabilityClass = 'rating-elite';
+        reliabilityIcon = '🟢';
+      }} else if (reliability >= 75) {{
+        reliabilityClass = 'rating-good';
+        reliabilityIcon = '🟡';
+      }} else if (reliability >= 60) {{
+        reliabilityClass = 'rating-fair';
+        reliabilityIcon = '🟠';
+      }} else {{
+        reliabilityClass = 'rating-poor';
+        reliabilityIcon = '🔴';
+      }}
+    }}
+    
+    // Season average
+    const seasonAvg = p.avgScore > 0 ? p.avgScore.toFixed(1) : '-';
+    
+    // Floor-ceiling range
+    const floorCeiling = `${{p.floor.toFixed(1)}}-${{p.ceiling.toFixed(1)}}`;
+    
+    // Action button
+    const actionBtn = `<button onclick="addToWatchlist('${{p.p}}')" style="padding: 5px 10px; background: rgba(111,198,171,0.2); border: 1px solid #6fc6ab; border-radius: 5px; cursor: pointer; color: #ecf0f1; font-size: 0.9em;">📋 Add</button>`;
     
     return `
       <tr class="pos-${{p.pos}}">
-        <td class="${{priorityClass}}">${{priority}}</td>
-        <td>${{p.p}}</td>  // Keep your <strong>
+        <td class="${{priorityClass}}" style="font-size: 1.2em;">${{priority}}</td>
+        <td><strong>${{p.p}}</strong></td>
         <td>${{p.pos}}</td>
-        <td><strong>${{p.proj.toFixed(1)}}</strong></td>
-        <td><span class="badge ${{p.tier.toLowerCase()}}">${{p.tier}}</span></td>  // Keep your classes
-        <td class="${{trendClass}}">${{trend}}</td>  // Keep your inline logic
-        <td>${{p.correlation ? (p.correlation * 100).toFixed(0) + '%' : '-'}}</td>
+        <td>${{p.rank}}</td>
+        <td><strong style="color: #6fc6ab;">${{p.proj.toFixed(1)}}</strong></td>
+        <td style="font-size: 0.9em; color: #bdc3c7;">${{floorCeiling}}</td>
+        <td><span class="badge ${{p.tier.toLowerCase()}}">${{p.tier}}</span></td>
+        <td>${{seasonAvg}}</td>
+        <td class="${{reliabilityClass}}" title="Reliability Score (0-100): Higher = More accurate projections"><strong>${{reliabilityIcon}} ${{reliabilityDisplay}}</strong></td>
+        <td class="${{trendClass}}" title="Average rank difference from projections">${{trendIcon}} ${{trendValue}}</td>
+        <td>${{actionBtn}}</td>
       </tr>
     `;
   }}).join('');
+}}
+
+function updateWaiverStats(availablePlayers) {{
+  // Total available
+  document.getElementById('waiverAvailableCount').textContent = availablePlayers.length;
+  
+  // Top player by position
+  const byPos = {{
+    QB: availablePlayers.filter(p => p.pos === 'QB').sort((a,b) => b.proj - a.proj)[0],
+    RB: availablePlayers.filter(p => p.pos === 'RB').sort((a,b) => b.proj - a.proj)[0],
+    WR: availablePlayers.filter(p => p.pos === 'WR').sort((a,b) => b.proj - a.proj)[0],
+    TE: availablePlayers.filter(p => p.pos === 'TE').sort((a,b) => b.proj - a.proj)[0]
+  }};
+  
+  document.getElementById('waiverTopQB').textContent = byPos.QB ? `${{byPos.QB.p}} (${{byPos.QB.proj.toFixed(1)}})` : 'None';
+  document.getElementById('waiverTopRB').textContent = byPos.RB ? `${{byPos.RB.p}} (${{byPos.RB.proj.toFixed(1)}})` : 'None';
+  document.getElementById('waiverTopWR').textContent = byPos.WR ? `${{byPos.WR.p}} (${{byPos.WR.proj.toFixed(1)}})` : 'None';
+  document.getElementById('waiverTopTE').textContent = byPos.TE ? `${{byPos.TE.p}} (${{byPos.TE.proj.toFixed(1)}})` : 'None';
+}}
+
+function addToWatchlist(playerName) {{
+  // Simple alert for now - you can expand this to actually maintain a watchlist
+  alert(`${{playerName}} added to watchlist!\\n\\nNote: This is a placeholder. You can expand this to:\\n- Save to localStorage\\n- Highlight in other tabs\\n- Send notifications\\n- Export to CSV`);
 }}
 
 function renderPositionalBaselines() {{
@@ -2491,9 +2875,9 @@ function generateOptimalLineup() {{
   `).join('');
   
   resultsDiv.innerHTML = `
-    <div style="background: rgba(52,152,219,0.2); border: 2px solid #3498db; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+    <div style="background: rgba(111,198,171,0.2); border: 2px solid #6fc6ab; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
       <h3>📊 Total Projection</h3>
-      <div style="font-size: 2em; font-weight: bold; color: #3498db;">${{totalProj.toFixed(1)}}</div>
+      <div style="font-size: 2em; font-weight: bold; color: #6fc6ab;">${{totalProj.toFixed(1)}}</div>
       <div style="margin-top: 5px; color: #bdc3c7;">Range: ${{totalFloor.toFixed(1)}} - ${{totalCeiling.toFixed(1)}}</div>
     </div>
     
@@ -2532,12 +2916,12 @@ function setTop20Mode(mode) {{
     overallBtn.style.border = '2px solid #2ecc71';
     overallBtn.style.fontWeight = 'bold';
     
-    availableBtn.style.background = 'rgba(52,152,219,0.15)';
-    availableBtn.style.border = '2px solid rgba(52,152,219,0.5)';
+    availableBtn.style.background = 'rgba(111,198,171,0.15)';
+    availableBtn.style.border = '2px solid rgba(111,198,171,0.5)';
     availableBtn.style.fontWeight = 'normal';
   }} else {{
-    availableBtn.style.background = 'rgba(52,152,219,0.3)';
-    availableBtn.style.border = '2px solid #3498db';
+    availableBtn.style.background = 'rgba(111,198,171,0.3)';
+    availableBtn.style.border = '2px solid #6fc6ab';
     availableBtn.style.fontWeight = 'bold';
     
     overallBtn.style.background = 'rgba(46,204,113,0.15)';
